@@ -22,13 +22,8 @@ pub trait TreasuryFactory {
     ///
     /// # Arguments
     /// * `salt` - The salt for the deployment
-    /// * `token_name` - The name of the token
-    /// * `token_symbol` - The symbol of the token
-    /// * `token_address` - The asset of the oracle to use for the pool
-    /// * `oracle` - The address of the oracle to use for the pool
-    /// * `pool_name` - The name of the pool
-    /// * `backstop_take_rate` - The backstop take rate of the pool
-    /// * `max_positions` - The maximum number of positions the pool
+    /// * `token_address` - The token address
+    /// * `blend_pool` - The blend pool address
     fn deploy(e: Env, salt: BytesN<32>, token_address: Address, blend_pool: Address) -> Address;
 
     /// (Admin only) Set a new address as the admin of this pool

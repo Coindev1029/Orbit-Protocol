@@ -11,12 +11,18 @@ pub trait BridgeOracle {
     /// Initializes the bridge oracle
     ///
     /// # Arguments
-    /// * `admin` - The admin address
-    /// * `oracle_init_meta` - The oracle init meta
+    /// * `from_asset` - The asset to convert from
+    /// * `to_asset` - The asset to convert to
+    /// * `oracle` - The oracle contract address
     fn initialize(e: Env, from_asset: Address, to_asset: Address, oracle: Address);
 
+    /// Fetch the number of decimals for the oracle
     fn decimals(env: Env) -> u32;
 
+    /// Fetch the last price for the asset
+    ///
+    /// # Arguments
+    /// * `asset` - The asset to fetch the price for
     fn lastprice(env: Env, asset: Asset) -> Option<PriceData>;
 }
 
