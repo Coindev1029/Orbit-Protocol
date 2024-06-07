@@ -40,7 +40,6 @@ pub struct PoolFixture<'a> {
 
 pub struct PairFixture<'a> {
     pub pair: PairClient<'a>,
-    pub reserves: HashMap<TokenIndex, u32>,
 }
 
 impl<'a> Index<TokenIndex> for Vec<MockTokenClient<'a>> {
@@ -225,6 +224,20 @@ impl TestFixture<'_> {
             treasury: TreasuryClient::new(&self.env, &treasury_id),
             reserves: HashMap::new(),
         });
+    }
+
+    pub fn create_pair(&mut self, token_a: TokenIndex, token_b: TokenIndex) {
+        let token_a_id = &self.tokens[token_a].address;
+        let token_b_id = &self.tokens[token_b].address;
+        let pair_id = self.pair_factory.create_pair(token_a_id, token_b_id);
+        self.pairs.push(PairFixture {
+            pair: PairClient::new(&self.env, &pair_id),
+        });
+    }
+
+    pub fn deposit_pair(&mut self, pair_index: usize, amount_a: u64, amount_b: u64) {
+        let pair_fixture = &mut self.pairs[pair_index];
+        pair_fixture.pair.deposit(&self.admin, &amount_a, &amount_a, &amount_b, &amount_b);
     }
 
     pub fn create_pool_reserve(

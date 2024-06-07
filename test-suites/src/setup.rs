@@ -12,7 +12,7 @@ pub fn create_fixture_with_data<'a>() -> TestFixture<'a> {
     // mint whale tokens
     let frodo = Address::generate(&fixture.env);
     fixture.users.push(frodo.clone());
-    fixture.tokens[TokenIndex::XLM].mint(&frodo, &(1_000_000 * SCALAR_7));
+    fixture.tokens[TokenIndex::XLM].mint(&frodo, &(10_000_000_000 * SCALAR_7)); // 10B XLM
 
     // mint LP tokens with whale
     fixture.tokens[TokenIndex::BLND].mint(&frodo, &(500_0010_000_0000_0000 * SCALAR_7));
@@ -44,7 +44,7 @@ pub fn create_fixture_with_data<'a>() -> TestFixture<'a> {
     fixture.create_pool_reserve(0, TokenIndex::XLM, &xlm_config);
 
     // enable emissions for pool
-    let treasury_fixture = &fixture.pools[0];
+    let pool_fixture = &fixture.pools[0];
     let reserve_emissions: soroban_sdk::Vec<ReserveEmissionMetadata> = svec![
         &fixture.env,
         ReserveEmissionMetadata {
@@ -58,30 +58,33 @@ pub fn create_fixture_with_data<'a>() -> TestFixture<'a> {
             share: 0_400_0000
         },
     ];
-    treasury_fixture.pool.set_emissions_config(&reserve_emissions);
+    pool_fixture.pool.set_emissions_config(&reserve_emissions);
 
     // deposit into backstop, add to reward zone
     fixture
         .backstop
-        .deposit(&frodo, &treasury_fixture.pool.address, &(50_000 * SCALAR_7));
+        .deposit(&frodo, &pool_fixture.pool.address, &(50_000 * SCALAR_7));
     fixture.backstop.update_tkn_val();
     fixture
         .backstop
-        .add_reward(&treasury_fixture.pool.address, &Address::generate(&fixture.env));
-    treasury_fixture.pool.set_status(&3);
-    treasury_fixture.pool.update_status();
+        .add_reward(&pool_fixture.pool.address, &Address::generate(&fixture.env));
+    pool_fixture.pool.set_status(&3);
+    pool_fixture.pool.update_status();
 
     // enable emissions
     fixture.emitter.distribute();
     fixture.backstop.gulp_emissions();
-    treasury_fixture.pool.gulp_emissions();
+    pool_fixture.pool.gulp_emissions();
 
     fixture.jump(60);
 
     // fixture.tokens[TokenIndex::XLM].approve(&frodo, &pool_fixture.pool.address, &i128::MAX, &50000);
 
-    treasury_fixture.treasury.increase_supply(&(100_000 * SCALAR_7)); // Treasury supplies 100k stable to pool
+    pool_fixture.treasury.increase_supply(&(100_000_000 * SCALAR_7)); // Treasury supplies 100M stable to pool
 
+    fixture.create_pair(TokenIndex::OUSD, TokenIndex::XLM);
+    let pair_fixture = &fixture.pairs[0];
+    pair_fixture.pair.set_reserve(&100_000 * SCALAR_7, &100_000 * SCALAR_7);
 
     //supply and borrow STABLE for 80% utilization (close to target)
     // let requests: SVec<Request> = svec![
