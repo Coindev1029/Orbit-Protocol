@@ -100,7 +100,7 @@ impl TreasuryFactory for TreasuryFactoryContract {
         ];
         e.invoke_contract::<Val>(&treasury_id, &Symbol::new(&e, "initialize"), treasury_init_args);
         
-        storage::set_deployed(&e, &token_address, &treasury_id);
+        storage::set_deployed(&e, &treasury_id);
 
         e.events().publish(("TreasuryFactory", Symbol::new(&e, "deploy")), treasury_id.clone());
         treasury_id
