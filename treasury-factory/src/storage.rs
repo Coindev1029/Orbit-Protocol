@@ -10,6 +10,7 @@ const LEDGER_BUMP_PERSISTENT: u32 = LEDGER_THRESHOLD_PERSISTENT + 20 * ONE_DAY_L
 
 const ADMIN_KEY: &str = "Admin";
 const BRIDGE_ORACLE_KEY: &str = "Oracle";
+const TREASURY_META_KEY: &str = "TreasuryMeta";
 
 #[derive(Clone)]
 #[contracttype]
@@ -80,7 +81,7 @@ pub fn set_bridge_oracle(e: &Env, new_bridge_oracle: &Address) {
 pub fn get_pool_init_meta(e: &Env) -> TreasuryInitMeta {
     e.storage()
         .instance()
-        .get::<Symbol, TreasuryInitMeta>(&Symbol::new(e, "TreasuryMeta"))
+        .get::<Symbol, TreasuryInitMeta>(&Symbol::new(e, TREASURY_META_KEY))
         .unwrap_optimized()
 }
 
@@ -91,24 +92,24 @@ pub fn get_pool_init_meta(e: &Env) -> TreasuryInitMeta {
 pub fn set_pool_init_meta(e: &Env, pool_init_meta: &TreasuryInitMeta) {
     e.storage()
         .instance()
-        .set::<Symbol, TreasuryInitMeta>(&Symbol::new(e, "TreasuryMeta"), pool_init_meta)
+        .set::<Symbol, TreasuryInitMeta>(&Symbol::new(e, TREASURY_META_KEY), pool_init_meta)
 }
 
 /// Check if a given token_address was deployed by the factory
 ///
 /// ### Arguments
 /// * `contract_id` - The contract_id to check
-pub fn is_deployed(e: &Env, contract_id: &Address) -> bool {
-    let key = TreasuryFactoryDataKey::Contracts(contract_id.clone());
-    if let Some(_) = e
+pub fn is_deployed(e: &Env, treasury_address: &Address) -> bool {
+    let key = TreasuryFactoryDataKey::Contracts(treasury_address.clone());
+    if let Some(result) = e
         .storage()
         .persistent()
-        .get::<TreasuryFactoryDataKey, Address>(&key)
+        .get::<TreasuryFactoryDataKey, bool>(&key)
     {
         e.storage()
             .persistent()
             .extend_ttl(&key, LEDGER_THRESHOLD_PERSISTENT, LEDGER_BUMP_PERSISTENT);
-        true
+        result
     } else {
         false
     }
@@ -117,13 +118,12 @@ pub fn is_deployed(e: &Env, contract_id: &Address) -> bool {
 /// Set a contract_id as having been deployed by the factory
 ///
 /// ### Arguments
-/// * `token_address` - The token_address to set as deployed
 /// * `treasury_address` - The treasury_address that was deployed
-pub fn set_deployed(e: &Env, token_address: &Address, treasury_address: &Address) {
-    let key = TreasuryFactoryDataKey::Contracts(token_address.clone());
+pub fn set_deployed(e: &Env, treasury_address: &Address) {
+    let key = TreasuryFactoryDataKey::Contracts(treasury_address.clone());
     e.storage()
         .persistent()
-        .set::<TreasuryFactoryDataKey, Address>(&key, treasury_address);
+        .set::<TreasuryFactoryDataKey, bool>(&key, &true);
     e.storage()
         .persistent()
         .extend_ttl(&key, LEDGER_THRESHOLD_PERSISTENT, LEDGER_BUMP_PERSISTENT);
