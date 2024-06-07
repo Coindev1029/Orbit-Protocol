@@ -1,7 +1,7 @@
 use soroban_sdk::{testutils::Address as _, vec as svec, Address, Symbol, Vec as SVec, String};
 
 use crate::{
-    pool::{default_reserve_metadata, RequestType, ReserveEmissionMetadata, Request},
+    dependencies::pool::{default_reserve_metadata, RequestType, ReserveEmissionMetadata, Request},
     test_fixture::{TestFixture, TokenIndex, SCALAR_7},
 };
 

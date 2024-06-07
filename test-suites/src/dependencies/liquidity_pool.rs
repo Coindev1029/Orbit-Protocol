@@ -7,7 +7,7 @@ mod lp_contract {
 pub use lp_contract::{Client as LPClient, WASM as LP_WASM};
 
 /// Deploy a test Comet LP pool of 80% token_1 / 20% token_2. The admin must be the
-/// admin of both of the token contracts used.
+/// admin of both of the token dependencies used.
 ///
 /// Initializes the pool with the following settings:
 /// - Swap fee: 0.3%
