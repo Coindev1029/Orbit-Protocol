@@ -5,12 +5,9 @@ use soroban_sdk::contracterror;
 #[repr(u32)]
 /// Error codes for the treasury factory contract. Common errors are codes that match up with the built-in
 /// contracts error reporting. Treasury factory specific errors start at 1300.
-pub enum TreasuryFactoryError {
+pub enum BridgeOracleError {
     // Common Errors
     InternalError = 1,
     AlreadyInitializedError = 3,
     NotInitializedError = 4,
-
-    // Treasury Factory
-    InvalidTreasuryInitArgs = 1300,
 }

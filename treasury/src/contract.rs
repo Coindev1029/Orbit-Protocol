@@ -60,6 +60,9 @@ impl Treasury for TreasuryContract {
 
     fn initialize(e: Env, admin: Address, token: Address, blend_pool: Address) {
         storage::extend_instance(&e);
+        if storage::is_init(&e) {
+            panic_with_error!(&e, TreasuryError::AlreadyInitializedError);
+        }
 
         storage::set_admin(&e, &admin);
         storage::set_blend(&e, &blend_pool);
