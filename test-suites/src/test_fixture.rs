@@ -10,12 +10,15 @@ use crate::dependencies::token::{create_stellar_token};
 use crate::dependencies::backstop::BackstopClient;
 use crate::dependencies::emitter::EmitterClient;
 use crate::dependencies::pool_factory::{create_pool_factory, PoolFactoryClient, PoolInitMeta};
+use crate::dependencies::pair::{PAIR_WASM, PairClient};
 use sep_40_oracle::testutils::{Asset, MockPriceOracleClient};
 use sep_41_token::testutils::{MockTokenClient, MockTokenWASM};
 use soroban_sdk::testutils::{Address as _, BytesN as _, Ledger, LedgerInfo};
 use soroban_sdk::{vec as svec, Address, BytesN, Env, Map, Symbol};
 use crate::dependencies::treasury::{TreasuryClient, TREASURY_WASM};
 use crate::dependencies::bridge_oracle::{BRIDGE_ORACLE_WASM, BridgeOracleClient, create_bridge_oracle};
+use crate::dependencies::pair_factory::{create_pair_factory, PairFactoryClient};
+use crate::dependencies::router::{create_router, RouterClient};
 use crate::dependencies::treasury_factory::{FactoryAsset, create_treasury_factory, TreasuryFactoryClient, TreasuryInitMeta};
 
 pub const SCALAR_7: i128 = 1_000_0000;
@@ -35,6 +38,11 @@ pub struct PoolFixture<'a> {
     pub reserves: HashMap<TokenIndex, u32>,
 }
 
+pub struct PairFixture<'a> {
+    pub pair: PairClient<'a>,
+    pub reserves: HashMap<TokenIndex, u32>,
+}
+
 impl<'a> Index<TokenIndex> for Vec<MockTokenClient<'a>> {
     type Output = MockTokenClient<'a>;
 
@@ -45,16 +53,19 @@ impl<'a> Index<TokenIndex> for Vec<MockTokenClient<'a>> {
 
 pub struct TestFixture<'a> {
     pub env: Env,
-    pub bombadil: Address,
+    pub admin: Address,
     pub users: Vec<Address>,
     pub emitter: EmitterClient<'a>,
     pub backstop: BackstopClient<'a>,
     pub pool_factory: PoolFactoryClient<'a>,
     pub treasury_factory: TreasuryFactoryClient<'a>,
+    pub pair_factory: PairFactoryClient<'a>,
+    pub router: RouterClient<'a>,
     pub oracle: MockPriceOracleClient<'a>,
     pub bridge_oracle: BridgeOracleClient<'a>,
     pub lp: LPClient<'a>,
     pub pools: Vec<PoolFixture<'a>>,
+    pub pairs: Vec<PairFixture<'a>>,
     pub tokens: Vec<MockTokenClient<'a>>,
 }
 
@@ -85,7 +96,7 @@ impl TestFixture<'_> {
         let (blnd_id, blnd_client) = create_stellar_token(&e, &bombadil);
         let (usdc_id, usdc_client) = create_stellar_token(&e, &bombadil);
         let (xlm_id, xlm_client) = create_stellar_token(&e, &bombadil); // TODO: make native
-        let (ousd_id, ousd_client) = create_stellar_token(&e, &bombadil);
+        let (_, ousd_client) = create_stellar_token(&e, &bombadil);
 
         // deploy Blend Protocol dependencies
         let (backstop_id, backstop_client) = create_backstop(&e);
@@ -154,19 +165,29 @@ impl TestFixture<'_> {
         };
         treasury_factory_client.initialize(&bombadil, &bridge_oracle_id, &treasury_init_meta);
 
+        // Initialize soroswap
+
+        let (pair_factory_id, pair_factory_client) = create_pair_factory(&e);
+        let pair_hash = e.deployer().upload_contract_wasm(PAIR_WASM);
+        let (_, router_client) = create_router(&e);
+        pair_factory_client.initialize(&bombadil, &pair_hash);
+        router_client.initialize(&pair_factory_id);
 
         let fixture = TestFixture {
             env: e,
-            bombadil,
+            admin: bombadil,
             users: vec![],
             emitter: emitter_client,
             backstop: backstop_client,
             pool_factory: pool_factory_client,
             treasury_factory: treasury_factory_client,
+            pair_factory: pair_factory_client,
+            router: router_client,
             oracle: mock_oracle_client,
             bridge_oracle: bridge_oracle_client,
             lp: lp_client,
             pools: vec![],
+            pairs: vec![],
             tokens: vec![
                 blnd_client,
                 usdc_client,
@@ -184,7 +205,7 @@ impl TestFixture<'_> {
         let oracle_id = &self.bridge_oracle;
 
         let pool_id = self.pool_factory.deploy(
-            &self.bombadil,
+            &self.admin,
             &name,
             &BytesN::<32>::random(&self.env),
             &oracle_id.address.clone(),
