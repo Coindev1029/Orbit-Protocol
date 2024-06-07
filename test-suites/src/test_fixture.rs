@@ -12,11 +12,11 @@ use crate::dependencies::emitter::EmitterClient;
 use crate::dependencies::pool_factory::{create_pool_factory, PoolFactoryClient, PoolInitMeta};
 use crate::dependencies::pair::{PAIR_WASM, PairClient};
 use sep_40_oracle::testutils::{Asset, MockPriceOracleClient};
-use sep_41_token::testutils::{MockTokenClient, MockTokenWASM};
+use sep_41_token::testutils::{MockTokenClient};
 use soroban_sdk::testutils::{Address as _, BytesN as _, Ledger, LedgerInfo};
 use soroban_sdk::{vec as svec, Address, BytesN, Env, Map, Symbol};
 use crate::dependencies::treasury::{TreasuryClient, TREASURY_WASM};
-use crate::dependencies::bridge_oracle::{BRIDGE_ORACLE_WASM, BridgeOracleClient, create_bridge_oracle};
+use crate::dependencies::bridge_oracle::{BridgeOracleClient, create_bridge_oracle};
 use crate::dependencies::pair_factory::{create_pair_factory, PairFactoryClient};
 use crate::dependencies::router::{create_router, RouterClient};
 use crate::dependencies::treasury_factory::{FactoryAsset, create_treasury_factory, TreasuryFactoryClient, TreasuryInitMeta};
@@ -233,11 +233,6 @@ impl TestFixture<'_> {
         self.pairs.push(PairFixture {
             pair: PairClient::new(&self.env, &pair_id),
         });
-    }
-
-    pub fn deposit_pair(&mut self, pair_index: usize, amount_a: u64, amount_b: u64) {
-        let pair_fixture = &mut self.pairs[pair_index];
-        pair_fixture.pair.deposit(&self.admin, &amount_a, &amount_a, &amount_b, &amount_b);
     }
 
     pub fn create_pool_reserve(

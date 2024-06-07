@@ -1,7 +1,7 @@
-use soroban_sdk::{testutils::Address as _, vec as svec, Address, Symbol, Vec as SVec, String};
+use soroban_sdk::{testutils::Address as _, vec as svec, Address, Symbol};
 
 use crate::{
-    dependencies::pool::{default_reserve_metadata, RequestType, ReserveEmissionMetadata, Request},
+    dependencies::pool::{default_reserve_metadata, ReserveEmissionMetadata},
     test_fixture::{TestFixture, TokenIndex, SCALAR_7},
 };
 
@@ -82,12 +82,19 @@ pub fn create_fixture_with_data<'a>() -> TestFixture<'a> {
 
     pool_fixture.treasury.increase_supply(&(100_000_000 * SCALAR_7)); // Treasury supplies 100M stable to pool
 
-    fixture.create_pair(TokenIndex::OUSD, TokenIndex::XLM);
-    let pair_fixture = &fixture.pairs[0];
-    pair_fixture.pair.set_reserve(&100_000 * SCALAR_7, &100_000 * SCALAR_7);
+    fixture.create_pair(TokenIndex::OUSD, TokenIndex::USDC);
+    let pair = &fixture.pairs[0].pair;
 
+    let deposit_amount = 6_000_0000 * SCALAR_7;
+    fixture.tokens[TokenIndex::OUSD].mint(&pair.address, &(deposit_amount));
+    fixture.tokens[TokenIndex::USDC].mint(&pair.address, &(deposit_amount));
+    pair.deposit(&frodo);
+
+    let henk = Address::generate(&fixture.env);
+    fixture.users.push(henk.clone());
+    fixture.tokens[TokenIndex::USDC].mint(&henk, &(100_000 * SCALAR_7)); // 10k USDC
     //supply and borrow STABLE for 80% utilization (close to target)
-    // let requests: SVec<Request> = svec![
+    // let requests: svec<Request> = svec![
     //     &fixture.env,
     //     Request {
     //         request_type: RequestType::SupplyCollateral as u32,
@@ -111,7 +118,7 @@ pub fn create_fixture_with_data<'a>() -> TestFixture<'a> {
 
 #[cfg(test)]
 mod tests {
-
+    use soroban_sdk::log;
     use crate::test_fixture::{PoolFixture};
 
     use super::*;
@@ -122,7 +129,9 @@ mod tests {
     fn test_create_fixture_with_data_wasm() {
         let fixture: TestFixture<'_> = create_fixture_with_data();
         let frodo = fixture.users.get(0).unwrap();
+        let henk = fixture.users.get(1).unwrap();
         let treasury_fixture: &PoolFixture = fixture.pools.get(0).unwrap();
+        let pair = &fixture.pairs[0].pair;
 
         // validate backstop deposit
         assert_eq!(
@@ -132,19 +141,22 @@ mod tests {
 
         // validate pool actions
         assert_eq!(
-            100_000 * SCALAR_7,
+            100_000_000 * SCALAR_7,
             fixture.tokens[TokenIndex::OUSD].balance(&treasury_fixture.pool.address)
         );
-        treasury_fixture.treasury.increase_supply(&(100_000 * SCALAR_7)); // Treasury supplies 100k stable to pool
-        assert_eq!(
-            200_000 * SCALAR_7,
-            fixture.tokens[TokenIndex::OUSD].balance(&treasury_fixture.pool.address)
-        );
-        treasury_fixture.treasury.decrease_supply(&(100_000 * SCALAR_7)); // Treasury supplies 100k stable to pool
+
+        // Validate mint
         assert_eq!(
             100_000 * SCALAR_7,
-            fixture.tokens[TokenIndex::OUSD].balance(&treasury_fixture.pool.address)
+            fixture.tokens[TokenIndex::USDC].balance(&henk)
         );
-        assert_eq!(0, fixture.tokens[TokenIndex::OUSD].balance(&treasury_fixture.treasury.address));
+
+        pair.swap(&(0_000 * SCALAR_7), &(1_000 * SCALAR_7), &henk);
+
+        // Validate swap
+        assert_eq!(
+            9_900 * SCALAR_7,
+            fixture.tokens[TokenIndex::OUSD].balance(&henk)
+        );
     }
 }
