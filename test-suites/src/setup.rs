@@ -4,6 +4,7 @@ use crate::{
     dependencies::pool::{default_reserve_metadata, ReserveEmissionMetadata},
     test_fixture::{TestFixture, TokenIndex, SCALAR_7},
 };
+use crate::dependencies::pool::{Request, RequestType, ReserveConfig};
 
 /// Create a test fixture with a pool and a whale depositing and borrowing all assets
 pub fn create_fixture_with_data<'a>() -> TestFixture<'a> {
@@ -31,16 +32,31 @@ pub fn create_fixture_with_data<'a>() -> TestFixture<'a> {
 
     fixture.create_pool(Symbol::new(&fixture.env, "Teapot"), 0_1000000, 6);
 
-    let mut ousd_config = default_reserve_metadata();
-    ousd_config.c_factor = 0_900_0000;
-    ousd_config.l_factor = 0_950_0000;
-    ousd_config.util = 0_850_0000;
+    let ousd_config = ReserveConfig {
+        decimals: 7,
+        c_factor: 0,
+        l_factor: 1_000_0000,
+        util: 0_800_0000,
+        max_util: 1_000_0000,
+        r_one: 0_040_0000,
+        r_two: 0_200_0000,
+        r_three: 0_790_0000,
+        reactivity: 0_0000200, // 2e-5
+        index: 0,
+    };
+    let xlm_config = ReserveConfig {
+        decimals: 7,
+        c_factor: 0_890_0000,
+        l_factor: 0,
+        util: 0,
+        max_util: 1_000_0000,
+        r_one: 0_040_0000,
+        r_two: 0_200_0000,
+        r_three: 0_790_0000,
+        reactivity: 0_0000200, // 2e-5
+        index: 1,
+    };
     fixture.create_pool_reserve(0, TokenIndex::OUSD, &ousd_config);
-
-    let mut xlm_config = default_reserve_metadata();
-    xlm_config.c_factor = 0_750_0000;
-    xlm_config.l_factor = 0_750_0000;
-    xlm_config.util = 0_500_0000;
     fixture.create_pool_reserve(0, TokenIndex::XLM, &xlm_config);
 
     // enable emissions for pool
@@ -82,33 +98,32 @@ pub fn create_fixture_with_data<'a>() -> TestFixture<'a> {
 
     pool_fixture.treasury.increase_supply(&(100_000_000 * SCALAR_7)); // Treasury supplies 100M stable to pool
 
-    fixture.create_pair(TokenIndex::OUSD, TokenIndex::USDC);
-    let pair = &fixture.pairs[0].pair;
+    //fixture.create_pair(TokenIndex::OUSD, TokenIndex::USDC);
+    //let pair = &fixture.pairs[0].pair;
 
-    let deposit_amount = 6_000_0000 * SCALAR_7;
-    fixture.tokens[TokenIndex::OUSD].mint(&pair.address, &(deposit_amount));
-    fixture.tokens[TokenIndex::USDC].mint(&pair.address, &(deposit_amount));
-    pair.deposit(&frodo);
+    // let deposit_amount = 6_000_0000 * SCALAR_7;
+    // fixture.tokens[TokenIndex::OUSD].mint(&pair.address, &(deposit_amount));
+    // fixture.tokens[TokenIndex::USDC].mint(&pair.address, &(deposit_amount));
+    // pair.deposit(&frodo);
 
     let henk = Address::generate(&fixture.env);
     fixture.users.push(henk.clone());
-    fixture.tokens[TokenIndex::USDC].mint(&henk, &(100_000 * SCALAR_7)); // 10k USDC
-    //supply and borrow STABLE for 80% utilization (close to target)
-    // let requests: svec<Request> = svec![
-    //     &fixture.env,
-    //     Request {
-    //         request_type: RequestType::SupplyCollateral as u32,
-    //         address: fixture.tokens[TokenIndex::XLM].address.clone(),
-    //         amount: 100_000 * SCALAR_7,
-    //     },
-    //     Request {
-    //         request_type: RequestType::Borrow as u32,
-    //         address: fixture.tokens[TokenIndex::XLM].address.clone(),
-    //         amount: 60_000 * SCALAR_7,
-    //     },
-    // ];
-    // pool_fixture.pool.submit(&frodo, &frodo, &frodo, &requests);
+    fixture.tokens[TokenIndex::XLM].mint(&henk, &(100_000 * SCALAR_7)); // 100k XLM
 
+    let requests = svec![
+        &fixture.env,
+        Request {
+            request_type: RequestType::SupplyCollateral as u32,
+            address: fixture.tokens[TokenIndex::XLM].address.clone(),
+            amount: 50_000 * SCALAR_7,
+        },
+        Request {
+            request_type: RequestType::Borrow as u32,
+            address: fixture.tokens[TokenIndex::OUSD].address.clone(),
+            amount: 1_000 * SCALAR_7,
+        },
+    ];
+    pool_fixture.pool.submit(&henk, &henk, &henk, &requests);
 
     fixture.jump(60 * 60); // 1 hr
 
@@ -118,7 +133,6 @@ pub fn create_fixture_with_data<'a>() -> TestFixture<'a> {
 
 #[cfg(test)]
 mod tests {
-    use soroban_sdk::log;
     use crate::test_fixture::{PoolFixture};
 
     use super::*;
@@ -131,7 +145,7 @@ mod tests {
         let frodo = fixture.users.get(0).unwrap();
         let henk = fixture.users.get(1).unwrap();
         let treasury_fixture: &PoolFixture = fixture.pools.get(0).unwrap();
-        let pair = &fixture.pairs[0].pair;
+        //let pair = &fixture.pairs[0].pair;
 
         // validate backstop deposit
         assert_eq!(
@@ -139,23 +153,15 @@ mod tests {
             fixture.lp.balance(&fixture.backstop.address)
         );
 
-        // validate pool actions
+        // validate collateral deposit
         assert_eq!(
-            100_000_000 * SCALAR_7,
-            fixture.tokens[TokenIndex::OUSD].balance(&treasury_fixture.pool.address)
+            50_000 * SCALAR_7,
+            fixture.tokens[TokenIndex::XLM].balance(&henk)
         );
 
-        // Validate mint
+        // validate borrow
         assert_eq!(
-            100_000 * SCALAR_7,
-            fixture.tokens[TokenIndex::USDC].balance(&henk)
-        );
-
-        pair.swap(&(0_000 * SCALAR_7), &(1_000 * SCALAR_7), &henk);
-
-        // Validate swap
-        assert_eq!(
-            9_900 * SCALAR_7,
+            1_000 * SCALAR_7,
             fixture.tokens[TokenIndex::OUSD].balance(&henk)
         );
     }
