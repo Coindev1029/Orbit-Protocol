@@ -1,5 +1,4 @@
 use soroban_sdk::{testutils::Address as _, Address, Env};
-
 use sep_40_oracle::testutils::{MockPriceOracleClient, MockPriceOracleWASM};
 
 pub fn create_mock_oracle<'a>(e: &Env) -> (Address, MockPriceOracleClient<'a>) {

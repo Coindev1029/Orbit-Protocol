@@ -1,15 +1,13 @@
 use soroban_sdk::{testutils::Address as _, vec, Address, Env};
+use sep_41_token::testutils::MockTokenClient;
 
 mod lp_contract {
     soroban_sdk::contractimport!(file = "../wasm/comet.wasm");
 }
-
 pub use lp_contract::{Client as LPClient, WASM as LP_WASM};
 
-use sep_41_token::testutils::MockTokenClient;
-
 /// Deploy a test Comet LP pool of 80% token_1 / 20% token_2. The admin must be the
-/// admin of both of the token contracts used.
+/// admin of both of the token dependencies used.
 ///
 /// Initializes the pool with the following settings:
 /// - Swap fee: 0.3%
