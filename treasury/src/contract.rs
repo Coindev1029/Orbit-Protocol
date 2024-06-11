@@ -266,7 +266,7 @@ impl Treasury for TreasuryContract {
         
         token_admin.mint(&pegkeeper, &amount);
         
-        pegkeeper_client.flashloan_receive(&pegkeeper, &amount);
+        pegkeeper_client.flashloan_receive(&token, &e.current_contract_address(), &amount, &loan_fee);
 
         balance_after = token_client.balance(&e.current_contract_address());
 
