@@ -227,6 +227,41 @@ impl Treasury for TreasuryContract {
         
         pegkeeper.require_auth_for_args((token.clone(), amount).into_val(&e),);
 
+        let args_mint: Vec<Val> = vec![
+            &e,
+            e.current_contract_address().into_val(&e),
+            pegkeeper.into_val(&e),
+            amount.into_val(&e),
+        ];
+        e.authorize_as_current_contract(vec![
+            &e,
+            InvokerContractAuthEntry::Contract(SubContractInvocation {
+                context: ContractContext {
+                    contract: token.clone(),
+                    fn_name: Symbol::new(&e, "mint"),
+                    args: args_mint.clone(),
+                },
+                sub_invocations: vec![&e],
+            })
+        ]);
+
+        let args_burn: Vec<Val> = vec![
+            &e,
+            e.current_contract_address().into_val(&e),
+            amount.into_val(&e),
+        ];
+        e.authorize_as_current_contract(vec![
+            &e,
+            InvokerContractAuthEntry::Contract(SubContractInvocation {
+                context: ContractContext {
+                    contract: token.clone(),
+                    fn_name: Symbol::new(&e, "burn"),
+                    args: args_burn.clone(),
+                },
+                sub_invocations: vec![&e],
+            })
+        ]);
+
         balance_before = token_client.balance(&e.current_contract_address());
         
         token_admin.mint(&pegkeeper, &amount);
@@ -236,6 +271,7 @@ impl Treasury for TreasuryContract {
         balance_after = token_client.balance(&e.current_contract_address());
 
         if balance_after >= balance_before + amount + loan_fee {
+            token_client.burn(&e.current_contract_address(), &amount);
             e.events().publish((FLASH_LOAN, symbol_short!("flashloan")), (amount, loan_fee));
         } else {
             panic_with_error!(&e, TreasuryError::FlashloanFailedError);
