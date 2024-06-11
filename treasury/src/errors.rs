@@ -13,7 +13,7 @@ pub enum TreasuryError {
     NegativeAmountError = 8,
     BalanceError = 10,
     OverflowError = 12,
-    
+    FlashloanFailedError = 11,
     SupplyError = 2000,
 
 }

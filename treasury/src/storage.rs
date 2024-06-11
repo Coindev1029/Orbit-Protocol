@@ -8,7 +8,8 @@ const ADMIN_KEY: &str = "Admin";
 const BLEND_KEY: &str = "Blend";
 const TOKEN_KEY: &str = "Token";
 const TOKEN_SUPPLY_KEY: &str = "TokenSupply";
-const PEGKEEPER_KEY: &str = "pegkeeper";
+const PEGKEEPER_KEY: &str = "Pegkeeper";
+const LOAN_FEE_KEY: &str = "LoanFee";
 
 /// Bump the instance rent for the contract
 pub fn extend_instance(e: &Env) {
@@ -108,6 +109,27 @@ pub fn set_token_supply(e: &Env, supply: &i128) {
     e.storage()
         .instance()
         .set::<Symbol, i128>(&Symbol::new(e, TOKEN_SUPPLY_KEY), supply);
+}
+
+/// Fetch the current loan fee
+///
+/// ### Panics
+/// If the loan fee does not exist
+pub fn get_loan_fee(e: &Env) -> i128 {
+    e.storage()
+        .instance()
+        .get(&Symbol::new(e, LOAN_FEE_KEY))
+        .unwrap_optimized()
+}
+
+/// Set the loan fee
+///
+/// ### Arguments
+/// * `loan fee` - The new loan fee
+pub fn set_loan_fee(e: &Env, fee: &i128) {
+    e.storage()
+        .instance()
+        .set::<Symbol, i128>(&Symbol::new(e, LOAN_FEE_KEY), fee);
 }
 
 /********** Blend **********/

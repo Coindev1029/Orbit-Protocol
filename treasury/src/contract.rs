@@ -1,9 +1,14 @@
-use crate::storage;
+use crate::storage::{self, get_loan_fee};
 use crate::dependencies::pool::{Client as PoolClient, Request};
+use crate::dependencies::pegkeeper::{self, Client as PegkeeperClient};
 use sep_41_token::StellarAssetClient;
-use soroban_sdk::{contract, contractclient, contractimpl, Address, Env, IntoVal, vec, Vec, Val, Symbol, token, panic_with_error};
+use soroban_sdk::{contract, contractclient, contractimpl, Address, Env, IntoVal, vec, Vec, Val, Symbol, symbol_short, token, panic_with_error};
 use soroban_sdk::auth::{ContractContext, InvokerContractAuthEntry, SubContractInvocation};
 use crate::errors::TreasuryError;
+use token::Client as TokenClient;
+use token::StellarAssetClient as TokenAdminClient;
+
+const FLASH_LOAN: Symbol = symbol_short!("FLASHLOAN");
 
 #[contract]
 pub struct TreasuryContract;
@@ -18,7 +23,7 @@ pub trait Treasury {
     /// * `token` - The Address for the token
     /// * `blend_pool` - The Address for the blend pool
     ///
-    fn initialize(e: Env, admin: Address, token: Address, blend_pool: Address);
+    fn initialize(e: Env, admin: Address, token: Address, blend_pool: Address, new_pegkeeper: Address);
 
     /// (Admin only) Set a new address as the admin of this pool
     ///
@@ -28,6 +33,33 @@ pub trait Treasury {
     /// ### Panics
     /// If the caller is not the admin
     fn set_admin(e: Env, admin: Address);
+
+    /// (Admin only) Set a new pegkeeper for the flashloan
+    ///
+    /// ### Arguments
+    /// * `new_pegkeeper` - The new pegkeeper address
+    ///
+    /// ### Panics
+    /// If the caller is not the admin
+    fn set_pegkeeper(e: Env, new_pegkeeper: Address);
+
+    /// (Admin only) Set a new loan fee for the flashloan
+    ///
+    /// ### Arguments
+    /// * `new_loan_fee` - The new loan fee
+    ///
+    /// ### Panics
+    /// If the caller is not the admin
+    fn set_loan_fee(e: Env, new_loan_fee: i128);
+
+    /// (pegkeeper only) only regiestered pegkeeper can call this function and flashloan by using this function
+    ///
+    /// ### Arguments
+    /// * `new_pegkeeper` - The new pegkeeper address
+    ///
+    /// ### Panics
+    /// If the caller is not the pegkeeper
+    fn flash_loan(e: Env, amount: i128);
 
     /// (Admin only) Increase the supply of the pool
     ///
@@ -58,7 +90,7 @@ pub trait Treasury {
 #[contractimpl]
 impl Treasury for TreasuryContract {
 
-    fn initialize(e: Env, admin: Address, token: Address, blend_pool: Address) {
+    fn initialize(e: Env, admin: Address, token: Address, blend_pool: Address, new_pegkeeper: Address) {
         storage::extend_instance(&e);
         if storage::is_init(&e) {
             panic_with_error!(&e, TreasuryError::AlreadyInitializedError);
@@ -68,6 +100,7 @@ impl Treasury for TreasuryContract {
         storage::set_blend(&e, &blend_pool);
         storage::set_token(&e, &token);
         storage::set_token_supply(&e, &0);
+        storage::set_pegkeeper(&e, &new_pegkeeper);
     }
 
     fn set_admin(e: Env, new_admin: Address) {
@@ -79,6 +112,24 @@ impl Treasury for TreasuryContract {
         storage::set_admin(&e, &new_admin);
         //e.events().publish(Symbol::new(e, "set_admin"), admin, new_admin);
     }
+
+    fn set_pegkeeper(e: Env, new_pegkeeper: Address) {
+        storage::extend_instance(&e);
+        let admin: Address = storage::get_admin(&e);
+        admin.require_auth();
+        // new_pegkeeper.require_auth();
+        storage::set_pegkeeper(&e, &new_pegkeeper);
+        //e.events().publish(Symbol::new(e, "set_admin"), admin, new_admin);
+    }
+
+    fn set_loan_fee(e: Env, new_loan_fee: i128) {
+        storage::extend_instance(&e);
+        let admin: Address = storage::get_admin(&e);
+        admin.require_auth();
+        // new_pegkeeper.require_auth();
+        storage::set_loan_fee(&e, &new_loan_fee);
+        //e.events().publish(Symbol::new(e, "set_admin"), admin, new_admin);
+    }    
 
     fn increase_supply(e: Env, amount: i128) {
         storage::extend_instance(&e);
@@ -160,6 +211,35 @@ impl Treasury for TreasuryContract {
         storage::set_token_supply(&e, &new_supply);
 
         //e.events().publish(Symbol::new(&e, "decrease_supply"), admin);
+    }
+
+    fn flash_loan(e: Env, amount: i128) {
+        storage::extend_instance(&e);
+        let pegkeeper: Address = storage::get_pegkeeper(&e);
+        let token: Address = storage::get_token(&e);
+        let pegkeeper_client = PegkeeperClient::new(&e, &pegkeeper);
+        // let token_contract_id = e.register_stellar_asset_contract(token.clone());
+        let token_admin = TokenAdminClient::new(&e, &token);
+        let token_client = TokenClient::new(&e, &token);
+        let balance_before: i128;
+        let balance_after: i128;
+        let loan_fee: i128 = storage::get_loan_fee(&e);
+        
+        pegkeeper.require_auth_for_args((token.clone(), amount).into_val(&e),);
+
+        balance_before = token_client.balance(&e.current_contract_address());
+        
+        token_admin.mint(&pegkeeper, &amount);
+        
+        pegkeeper_client.flashloan_receive(&pegkeeper, &amount);
+
+        balance_after = token_client.balance(&e.current_contract_address());
+
+        if balance_after >= balance_before + amount + loan_fee {
+            e.events().publish((FLASH_LOAN, symbol_short!("flashloan")), (amount, loan_fee));
+        } else {
+            panic_with_error!(&e, TreasuryError::FlashloanFailedError);
+        }
     }
 
     fn get_token_address(e: Env) -> Address {
