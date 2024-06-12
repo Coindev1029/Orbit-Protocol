@@ -6,6 +6,7 @@ pub(crate) const LEDGER_BUMP_SHARED: u32 = 241920; // ~ 14 days
 
 const ADMIN_KEY: &str = "Admin";
 const BLEND_KEY: &str = "Blend";
+const SOROSWAP_KEY: &str = "Soroswap";
 const TOKEN_KEY: &str = "Token";
 const TOKEN_SUPPLY_KEY: &str = "TokenSupply";
 const PEGKEEPER_KEY: &str = "Pegkeeper";
@@ -153,4 +154,27 @@ pub fn set_blend(e: &Env, blend: &Address) {
     e.storage()
         .instance()
         .set::<Symbol, Address>(&Symbol::new(e, BLEND_KEY), blend);
+}
+
+/********** Soroswap **********/
+
+/// Fetch the current soroswap Address
+///
+/// ### Panics
+/// If the soroswap does not exist
+pub fn get_soroswap(e: &Env) -> Address {
+    e.storage()
+        .instance()
+        .get(&Symbol::new(e, SOROSWAP_KEY))
+        .unwrap_optimized()
+}
+
+/// Set the soroswap Address
+///
+/// ### Arguments
+/// * `soroswap` - The Address for the soroswap
+pub fn set_soroswap(e: &Env, soroswap: &Address) {
+    e.storage()
+        .instance()
+        .set::<Symbol, Address>(&Symbol::new(e, SOROSWAP_KEY), soroswap);
 }

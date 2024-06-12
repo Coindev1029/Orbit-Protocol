@@ -1,11 +1,12 @@
 #![no_std]
-use soroban_sdk::{contract, contractclient, contractimpl, panic_with_error, token, Address, Env};
-use crate::dependencies::treasury::Client as TreasuryClient;
+use soroban_sdk::{contract, contractclient, contractimpl, panic_with_error, token, Address, Env, vec};
 use crate::{
-    dependencies::treasury, 
-    errors::PegkeeperError,
-    storage,
-    balances
+    balances, dependencies::{
+        blend::{Client as BlendClient, Positions, Request}, 
+        router::Client as SoroswapRouter, 
+        treasury::Client as TreasuryClient
+    }, 
+    errors::PegkeeperError, storage
 };
 
 #[contract]
@@ -58,8 +59,7 @@ pub trait Pegkeeper {
     ///
     /// ### Panics
     /// If there is no profit
-    fn flashloan_receive(e: Env, token_address: Address, treasury_address: Address, amount: i128, treasury_fee: i128) -> Result<(), PegkeeperError>;
-
+    fn flashloan_receive(e: Env, token_address: Address, treasury_address: Address, blend_address: Address, soroswap_address: Address, amount: i128, treasury_fee: i128) -> Result<(), PegkeeperError>;
     /// Get token address
     fn get_treasury(e: Env, token_address: Address) -> Address;
 
@@ -109,9 +109,11 @@ impl Pegkeeper for PegkeeperContract {
         treasury_client.flash_loan(&amount);
         Ok(())
     }
-    fn flashloan_receive(e: Env, token_address: Address, treasury_address: Address, amount: i128, treasury_fee: i128) -> Result<(), PegkeeperError> {
+    fn flashloan_receive(e: Env, token_address: Address, treasury_address: Address, blend_address: Address, soroswap_address: Address, amount: i128, treasury_fee: i128) -> Result<(), PegkeeperError> {
         storage::extend_instance(&e);
     
+        treasury_address.require_auth();
+        
         // Check balance of token of contract
         let balance_after = balances::get_balance(&e, token_address.clone());
         let balance_before =storage::get_balance(&e);
@@ -120,7 +122,18 @@ impl Pegkeeper for PegkeeperContract {
             return Err(PegkeeperError::InsufficientBalance);
         }
     
+        // Interact with blend
+        let blend_client = BlendClient::new(&e, &blend_address);
+        let positions = blend_client.submit(&e.current_contract_address(), &e.current_contract_address(), &e.current_contract_address(), &vec![
+            &e,
+            Request {
+                request_type: 6_u32, // FillUserLiquidationAuction RequestType
+                address: token_address.clone(),
+                amount,
+            }]);
+        
         // Trades on any other protocols
+        // let soroswap_router = SoroswapRouter::new(&e, &soroswap_address);
 
         // Repay the flash loan amount + treasury fee to treasury
         balances::transfer_amount(&e, token_address, treasury_address, amount + treasury_fee);
