@@ -12,8 +12,6 @@ const LEDGER_BUMP_INSTANCE: u32 = LEDGER_THRESHOLD_INSTANCE + ONE_DAY_LEDGERS; /
 pub enum DataKey {
     ADMIN,
     TREASURY(Address), // mapping token address to treasury addres
-    BLEND,
-    SOROSWAP,
     BALANCE
 }
 /// Bump the instance rent for the contract
@@ -66,48 +64,6 @@ pub fn set_treasury(e: &Env, token_address: Address, treasury_address: &Address)
     e.storage()
         .instance()
         .set(&DataKey::TREASURY(token_address), treasury_address);
-}
-
-/// Fetch the current blend Address
-///
-/// ### Panics
-/// If the blend does not exist
-pub fn get_blend(e: &Env) -> Address {
-    e.storage()
-        .instance()
-        .get(&DataKey::BLEND)
-        .unwrap_optimized()
-}
-
-/// Set the blend Address
-///
-/// ### Arguments
-/// * `blend` - The Address for the blend pool
-pub fn set_blend(e: &Env, blend: &Address) {
-    e.storage()
-        .instance()
-        .set(&DataKey::BLEND, blend);
-}
-
-/// Fetch the current soroswap Address
-///
-/// ### Panics
-/// If the soroswap does not exist
-pub fn get_soroswap(e: &Env) -> Address {
-    e.storage()
-        .instance()
-        .get(&DataKey::SOROSWAP)
-        .unwrap_optimized()
-}
-
-/// Set the soroswap Address
-///
-/// ### Arguments
-/// * `soroswap` - The Address of the soroswap
-pub fn set_soroswap(e: &Env, soroswap: &Address) {
-    e.storage()
-        .instance()
-        .set(&DataKey::SOROSWAP, soroswap);
 }
 
 /// Fetch the current balance

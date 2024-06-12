@@ -9,4 +9,3 @@ mod errors;
 mod reentry;
 
 pub use contract::*;
-mod test;

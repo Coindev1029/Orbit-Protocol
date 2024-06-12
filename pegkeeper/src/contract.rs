@@ -41,24 +41,6 @@ pub trait Pegkeeper {
     /// If the caller is not the admin
     fn add_treasury(e: Env, new_token_address: Address, new_treasury: Address);
 
-    /// (Admin only) Set a new blend address for the liquidation
-    ///
-    /// ### Arguments
-    /// * `blend` - The blend address
-    ///
-    /// ### Panics
-    /// If the caller is not the admin
-    fn set_blend(e: Env, blend: Address);
-
-    /// (Admin only) Set a new soroswap address for the trades
-    ///
-    /// ### Arguments
-    /// * `soroswap` - The soroswap address
-    ///
-    /// ### Panics
-    /// If the caller is not the admin
-    fn set_soroswap(e: Env, soroswap: Address);
-
     /// Flash loan specific amount from specific treasury by using token address
     /// ### Arguments
     /// * `token_address` - The token address for flash loan
@@ -81,12 +63,6 @@ pub trait Pegkeeper {
     /// Get token address
     fn get_treasury(e: Env, token_address: Address) -> Address;
 
-    /// Get blend address
-    fn get_blend(e: Env) -> Address;
-
-    /// Get soroswap address
-    fn get_soroswap(e: Env) -> Address;
-
 }
 
 #[contractimpl]
@@ -99,8 +75,6 @@ impl Pegkeeper for PegkeeperContract {
         }
 
         storage::set_admin(&e, &admin);
-        storage::set_blend(&e, &blend);
-        storage::set_soroswap(&e, &soroswap);
     }
 
     fn add_treasury(e: Env, new_token_address: Address, new_treasury: Address) {
@@ -119,32 +93,8 @@ impl Pegkeeper for PegkeeperContract {
         storage::set_admin(&e, &admin);
     }
 
-    fn set_blend(e: Env, blend: Address) {
-        storage::extend_instance(&e);
-        let admin = storage::get_admin(&e);
-        admin.require_auth();
-
-        storage::set_blend(&e, &blend);
-    }
-
-    fn set_soroswap(e: Env, soroswap: Address) {
-        storage::extend_instance(&e);
-        let admin = storage::get_admin(&e);
-        admin.require_auth();
-
-        storage::set_soroswap(&e, &soroswap);
-    }
-
     fn get_treasury(e: Env, token_address: Address) -> Address {
         storage::get_treasury(&e, token_address)
-    }
-
-    fn get_blend(e: Env) -> Address {
-        storage::get_blend(&e)
-    }
-
-    fn get_soroswap(e: Env) -> Address {
-        storage::get_soroswap(&e)
     }
 
     fn flash_loan(e: Env, token_address: Address, amount: i128) -> Result<(), PegkeeperError> {
