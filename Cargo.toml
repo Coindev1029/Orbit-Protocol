@@ -4,6 +4,7 @@ resolver = "2"
 members = [
     "treasury",
     "treasury-factory",
+    "pegkeeper",
     "test-suites",
     "bridge-oracle"]
 
