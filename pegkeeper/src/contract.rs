@@ -124,13 +124,13 @@ impl Pegkeeper for PegkeeperContract {
     
         // Interact with blend
         let blend_client = BlendClient::new(&e, &blend_address);
-        let positions = blend_client.submit(&e.current_contract_address(), &e.current_contract_address(), &e.current_contract_address(), &vec![
-            &e,
-            Request {
-                request_type: 6_u32, // FillUserLiquidationAuction RequestType
-                address: token_address.clone(),
-                amount,
-            }]);
+        // let positions = blend_client.submit(&e.current_contract_address(), &e.current_contract_address(), &e.current_contract_address(), &vec![
+        //     &e,
+        //     Request {
+        //         request_type: 6_u32, // FillUserLiquidationAuction RequestType
+        //         address: token_address.clone(),
+        //         amount,
+        //     }]);
         
         // Trades on any other protocols
         // let soroswap_router = SoroswapRouter::new(&e, &soroswap_address);
