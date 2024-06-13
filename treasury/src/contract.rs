@@ -23,7 +23,7 @@ pub trait Treasury {
     /// * `token` - The Address for the token
     /// * `blend_pool` - The Address for the blend pool
     ///
-    fn initialize(e: Env, admin: Address, token: Address, blend_pool: Address, new_pegkeeper: Address);
+    fn initialize(e: Env, admin: Address, token: Address, blend_pool: Address, soroswap: Address, new_pegkeeper: Address);
 
     /// (Admin only) Set a new address as the admin of this pool
     ///
@@ -85,12 +85,15 @@ pub trait Treasury {
 
     /// Get blend address
     fn get_blend_address(e: Env) -> Address;
+
+    /// Get soroswap address
+    fn get_soroswap_address(e: Env) -> Address;
 }
 
 #[contractimpl]
 impl Treasury for TreasuryContract {
 
-    fn initialize(e: Env, admin: Address, token: Address, blend_pool: Address, new_pegkeeper: Address) {
+    fn initialize(e: Env, admin: Address, token: Address, blend_pool: Address, soroswap: Address, new_pegkeeper: Address) {
         storage::extend_instance(&e);
         if storage::is_init(&e) {
             panic_with_error!(&e, TreasuryError::AlreadyInitializedError);
@@ -98,6 +101,7 @@ impl Treasury for TreasuryContract {
 
         storage::set_admin(&e, &admin);
         storage::set_blend(&e, &blend_pool);
+        storage::set_blend(&e, &soroswap);
         storage::set_token(&e, &token);
         storage::set_token_supply(&e, &0);
         storage::set_pegkeeper(&e, &new_pegkeeper);
@@ -266,7 +270,10 @@ impl Treasury for TreasuryContract {
         
         token_admin.mint(&pegkeeper, &amount);
         
-        pegkeeper_client.flashloan_receive(&token, &e.current_contract_address(), &amount, &loan_fee);
+        let blend_address = storage::get_blend(&e);
+        let soroswap_address = storage::get_soroswap(&e);
+
+        pegkeeper_client.flashloan_receive(&token, &e.current_contract_address(), &blend_address, &soroswap_address, &amount, &loan_fee);
 
         balance_after = token_client.balance(&e.current_contract_address());
 
@@ -286,5 +293,10 @@ impl Treasury for TreasuryContract {
     fn get_blend_address(e: Env) -> Address {
         storage::extend_instance(&e);
         storage::get_blend(&e)
+    }
+
+    fn get_soroswap_address(e: Env) -> Address {
+        storage::extend_instance(&e);
+        storage::get_soroswap(&e)
     }
 }
