@@ -4,19 +4,21 @@ use soroban_sdk::{self, contracterror};
 #[derive(Copy, Clone, Debug, Eq, PartialEq, PartialOrd, Ord)]
 #[repr(u32)]
 pub enum PegkeeperError {
-    /// already initialized
-    AlreadyInitializedError = 100,
-
     /// not yet initialized
     NotInitialized = 101,
+
+    /// already initialized
+    AlreadyInitializedError = 102,
     
     /// not proper treasury for token
-    NotProperTreasury = 102,
+    NotProperTreasury = 103,
 
     /// uncorrect amount for loan
-    UncorrectAmount = 103,
+    UncorrectAmount = 104,
 
     /// unsufficient amount to repay
-    InsufficientBalance = 104,
+    InsufficientBalance = 105,
 
+    /// failed to repay liabilities to blend
+    RepayLiabilitiesFail = 106,
 }

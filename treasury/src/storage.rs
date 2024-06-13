@@ -9,6 +9,7 @@ const BLEND_KEY: &str = "Blend";
 const SOROSWAP_KEY: &str = "Soroswap";
 const TOKEN_KEY: &str = "Token";
 const TOKEN_SUPPLY_KEY: &str = "TokenSupply";
+const COLLATERAL_TOKEN_KEY: &str = "CollateralKey";
 const PEGKEEPER_KEY: &str = "Pegkeeper";
 const LOAN_FEE_KEY: &str = "LoanFee";
 
@@ -87,6 +88,29 @@ pub fn set_token(e: &Env, token: &Address) {
     e.storage()
         .instance()
         .set::<Symbol, Address>(&Symbol::new(e, TOKEN_KEY), token);
+}
+
+/********** Collatera Token **********/
+
+/// Fetch the current collateral token Address
+///
+/// ### Panics
+/// If the collateral token does not exist
+pub fn get_collateral_token_address(e: &Env) -> Address {
+    e.storage()
+        .instance()
+        .get(&Symbol::new(e, COLLATERAL_TOKEN_KEY))
+        .unwrap_optimized()
+}
+
+/// Set the collateral token Address
+///
+/// ### Arguments
+/// * `token` - The Address for the collateral token
+pub fn set_collateral_token_address(e: &Env, token: &Address) {
+    e.storage()
+        .instance()
+        .set::<Symbol, Address>(&Symbol::new(e, COLLATERAL_TOKEN_KEY), token);
 }
 
 /********** Token Supply **********/
