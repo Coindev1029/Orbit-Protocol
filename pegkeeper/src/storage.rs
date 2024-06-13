@@ -12,7 +12,8 @@ const LEDGER_BUMP_INSTANCE: u32 = LEDGER_THRESHOLD_INSTANCE + ONE_DAY_LEDGERS; /
 pub enum DataKey {
     ADMIN,
     TREASURY(Address), // mapping token address to treasury addres
-    BALANCE
+    BALANCE,
+    MAXIMUMDURATION,
 }
 /// Bump the instance rent for the contract
 pub fn extend_instance(e: &Env) {
@@ -83,4 +84,23 @@ pub fn set_balance(e: &Env, balance: &i128) {
     e.storage()
         .instance()
         .set(&DataKey::BALANCE, balance);
+}
+
+/// Fetch the maximum duration for swap transaction
+///
+pub fn get_maximum_duration(e: &Env) -> u64 {
+    e.storage()
+        .instance()
+        .get(&DataKey::MAXIMUMDURATION)
+        .unwrap_optimized()
+}
+
+/// Set the maximum duration for swap transaction
+///
+/// ### Arguments
+/// * `maximum_duration` - The maximum_duration for swap transaction
+pub fn set_maximum_duration(e: &Env, maximum_duration: &u64) {
+    e.storage()
+        .instance()
+        .set(&DataKey::MAXIMUMDURATION, maximum_duration);
 }
