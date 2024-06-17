@@ -6,7 +6,7 @@ members = [
     "treasury-factory",
     "pegkeeper",
     "test-suites",
-    "bridge-oracle"]
+    "bridge-oracle",]
 
 [profile.release-with-logs]
 inherits = "release"

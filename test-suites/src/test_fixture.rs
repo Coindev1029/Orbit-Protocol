@@ -69,7 +69,7 @@ pub struct TestFixture<'a> {
 }
 
 impl TestFixture<'_> {
-    /// Create a new TestFixture for the Blend Protocol
+    /// Create a new TestFixture for the Orbit Protocol
     ///
     /// Deploys BLND (0), USDC (1), wETH (2), XLM (3), and STABLE (4) test tokens, alongside all required
     /// Blend Protocol dependencies, including a BLND-USDC LP.
