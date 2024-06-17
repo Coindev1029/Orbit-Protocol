@@ -14,7 +14,7 @@ use crate::{
 #[contract]
 pub struct MockPegkeeperContract;
 
-#[contractclient(name="PegkeeperClient")]
+#[contractclient(name="MockPegkeeperClient")]
 pub trait MockPegkeeper {
     /// Initialize the treasury
     ///
@@ -93,24 +93,18 @@ impl MockPegkeeper for MockPegkeeperContract {
 
     fn set_admin(e: Env, admin: Address) {
         storage::extend_instance(&e);
-        let admin = storage::get_admin(&e);
-        admin.require_auth();
 
         storage::set_admin(&e, &admin);
     }
 
     fn add_treasury(e: Env, new_token_address: Address, new_treasury: Address) {
         storage::extend_instance(&e);
-        let admin = storage::get_admin(&e);
-        admin.require_auth();
 
         storage::set_treasury(&e, new_token_address, &new_treasury);
     }
 
     fn set_maximum_duration(e: Env, maximum_duration: u64) {
         storage::extend_instance(&e);
-        let admin = storage::get_admin(&e);
-        admin.require_auth();
 
         storage::set_maximum_duration(&e, &maximum_duration);
     }
