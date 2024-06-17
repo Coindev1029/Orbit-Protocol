@@ -5,7 +5,7 @@ use soroban_sdk::contracterror;
 #[repr(u32)]
 /// Error codes for the pool factory contract. Common errors are codes that match up with the built-in
 /// dependencies error reporting. Treasury specific errors start at 2000.
-pub enum TreasuryError {
+pub enum MockTreasuryError {
     // Common Errors
     InternalError = 1,
     AlreadyInitializedError = 3,

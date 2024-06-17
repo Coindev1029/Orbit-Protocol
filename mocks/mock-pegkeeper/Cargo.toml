@@ -1,5 +1,5 @@
 [package]
-name = "pegkeeper"
+name = "mock-pegkeeper"
 version = "0.0.0"
 edition = "2021"
 publish = false

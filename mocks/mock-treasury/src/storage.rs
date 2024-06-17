@@ -144,7 +144,7 @@ pub fn set_token_supply(e: &Env, supply: &i128) {
 pub fn get_loan_fee(e: &Env) -> i128 {
     e.storage()
         .instance()
-        .get(&Symbol::new(e, FLASHLOAN_FLAG))
+        .get(&Symbol::new(e, LOAN_FEE_KEY))
         .unwrap_optimized()
 }
 
@@ -155,28 +155,7 @@ pub fn get_loan_fee(e: &Env) -> i128 {
 pub fn set_loan_fee(e: &Env, fee: &i128) {
     e.storage()
         .instance()
-        .set::<Symbol, bool>(&Symbol::new(e, FLASHLOAN_FLAG), fee);
-}
-
-/// Fetch the current loan fee
-///
-/// ### Panics
-/// If the loan fee does not exist
-pub fn get_flashloan_flag(e: &Env) -> bool {
-    e.storage()
-        .instance()
-        .get(&Symbol::new(e, LOAN_FEE_KEY))
-        .unwrap_optimized()
-}
-
-/// Set the loan fee
-///
-/// ### Arguments
-/// * `loan fee` - The new loan fee
-pub fn set_flashloan_flag(e: &Env, flag: &bool) {
-    e.storage()
-        .instance()
-        .set::<Symbol, i128>(&Symbol::new(e, LOAN_FEE_KEY), flag);
+        .set::<Symbol, i128>(&Symbol::new(e, LOAN_FEE_KEY), fee);
 }
 
 /********** Blend **********/
