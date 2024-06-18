@@ -85,6 +85,9 @@ pub trait MockTreasury {
 
     /// Get soroswap address
     fn get_soroswap_address(e: Env) -> Address;
+
+    /// Get pegkeeper address
+    fn get_pegkeeper_address(e: Env) -> Address;
 }
 
 #[contractimpl]
@@ -222,7 +225,7 @@ impl MockTreasury for MockTreasuryContract {
         let mut init_args: Vec<Val> = vec![&e];
         init_args.push_back(e.current_contract_address().to_val());
         init_args.push_back(amount.into_val(&e));
-        e.invoke_contract::<Val>(&pegkeeper, &Symbol::new(&e, "flashloan_receive"), init_args);
+        // e.invoke_contract::<Val>(&pegkeeper, &Symbol::new(&e, "flashloan_receive"), init_args);
     }
 
     fn get_token_address(e: Env) -> Address {
@@ -243,5 +246,10 @@ impl MockTreasury for MockTreasuryContract {
     fn get_soroswap_address(e: Env) -> Address {
         storage::extend_instance(&e);
         storage::get_soroswap(&e)
+    }
+
+    fn get_pegkeeper_address(e: Env) -> Address {
+        storage::extend_instance(&e);
+        storage::get_pegkeeper(&e)
     }
 }

@@ -14,7 +14,7 @@ use crate::dependencies::pair::{PAIR_WASM, PairClient};
 use sep_40_oracle::testutils::{Asset, MockPriceOracleClient};
 use sep_41_token::testutils::{MockTokenClient};
 use soroban_sdk::testutils::{Address as _, BytesN as _, Ledger, LedgerInfo};
-use soroban_sdk::{vec as svec, Address, BytesN, Env, Map, Symbol};
+use soroban_sdk::{vec as svec, Address, BytesN, Env, Map, Symbol, Val, IntoVal};
 use crate::dependencies::treasury::{TreasuryClient, TREASURY_WASM};
 use crate::dependencies::bridge_oracle::{BridgeOracleClient, create_bridge_oracle};
 use crate::dependencies::pair_factory::{create_pair_factory, PairFactoryClient};
