@@ -4,17 +4,17 @@ use crate::dependencies::pegkeeper::{self, Client as PegkeeperClient};
 use sep_41_token::StellarAssetClient;
 use soroban_sdk::{contract, contractclient, contractimpl, Address, Env, IntoVal, vec, Vec, Val, Symbol, symbol_short, token, panic_with_error};
 use soroban_sdk::auth::{ContractContext, InvokerContractAuthEntry, SubContractInvocation};
-use crate::errors::TreasuryError;
+use crate::errors::MockTreasuryError;
 use token::Client as TokenClient;
 use token::StellarAssetClient as TokenAdminClient;
 
 const FLASH_LOAN: Symbol = symbol_short!("FLASHLOAN");
 
 #[contract]
-pub struct TreasuryContract;
+pub struct MockTreasuryContract;
 
-#[contractclient(name="TreasuryClient")]
-pub trait Treasury {
+#[contractclient(name="MockTreasuryClient")]
+pub trait MockTreasury {
 
     /// Initialize the treasury
     ///
@@ -94,12 +94,12 @@ pub trait Treasury {
 }
 
 #[contractimpl]
-impl Treasury for TreasuryContract {
+impl MockTreasury for MockTreasuryContract {
 
     fn initialize(e: Env, admin: Address, token: Address, blend_pool: Address, soroswap: Address, collateral_token_address: Address, new_pegkeeper: Address) {
         storage::extend_instance(&e);
         if storage::is_init(&e) {
-            panic_with_error!(&e, TreasuryError::AlreadyInitializedError);
+            panic_with_error!(&e, MockTreasuryError::AlreadyInitializedError);
         }
 
         storage::set_admin(&e, &admin);
@@ -109,6 +109,7 @@ impl Treasury for TreasuryContract {
         storage::set_collateral_token_address(&e, &collateral_token_address);
         storage::set_token_supply(&e, &0);
         storage::set_pegkeeper(&e, &new_pegkeeper);
+        storage::set_loan_fee(&e, &0);
     }
 
     fn set_admin(e: Env, new_admin: Address) {
@@ -187,7 +188,7 @@ impl Treasury for TreasuryContract {
 
         let supply = storage::get_token_supply(&e);
         if supply < amount {
-            panic_with_error!(&e, TreasuryError::SupplyError);
+            panic_with_error!(&e, MockTreasuryError::SupplyError);
         }
 
         let token = storage::get_token(&e);
@@ -197,7 +198,7 @@ impl Treasury for TreasuryContract {
         let position = pool_client.get_positions(&e.current_contract_address()).supply;
         let position_amount = position.get(0).unwrap(); // Assuming the token indedx of the stable coin is 0
         if position_amount < amount {
-            panic_with_error!(&e, TreasuryError::SupplyError);
+            panic_with_error!(&e, MockTreasuryError::SupplyError);
         }
 
         pool_client.submit(&e.current_contract_address(), &e.current_contract_address(), &e.current_contract_address(), &vec![
@@ -224,70 +225,9 @@ impl Treasury for TreasuryContract {
     fn flash_loan(e: Env, amount: i128) {
         storage::extend_instance(&e);
         let pegkeeper: Address = storage::get_pegkeeper(&e);
-        let token: Address = storage::get_token(&e);
         let pegkeeper_client = PegkeeperClient::new(&e, &pegkeeper);
-        // let token_contract_id = e.register_stellar_asset_contract(token.clone());
-        let token_admin = TokenAdminClient::new(&e, &token);
-        let token_client = TokenClient::new(&e, &token);
-        let balance_before: i128;
-        let balance_after: i128;
-        let loan_fee: i128 = storage::get_loan_fee(&e);
-        
-        pegkeeper.require_auth_for_args((token.clone(), amount).into_val(&e),);
 
-        let args_mint: Vec<Val> = vec![
-            &e,
-            e.current_contract_address().into_val(&e),
-            pegkeeper.into_val(&e),
-            amount.into_val(&e),
-        ];
-        e.authorize_as_current_contract(vec![
-            &e,
-            InvokerContractAuthEntry::Contract(SubContractInvocation {
-                context: ContractContext {
-                    contract: token.clone(),
-                    fn_name: Symbol::new(&e, "mint"),
-                    args: args_mint.clone(),
-                },
-                sub_invocations: vec![&e],
-            })
-        ]);
-
-        let args_burn: Vec<Val> = vec![
-            &e,
-            e.current_contract_address().into_val(&e),
-            amount.into_val(&e),
-        ];
-        e.authorize_as_current_contract(vec![
-            &e,
-            InvokerContractAuthEntry::Contract(SubContractInvocation {
-                context: ContractContext {
-                    contract: token.clone(),
-                    fn_name: Symbol::new(&e, "burn"),
-                    args: args_burn.clone(),
-                },
-                sub_invocations: vec![&e],
-            })
-        ]);
-
-        balance_before = token_client.balance(&e.current_contract_address());
-        
-        token_admin.mint(&pegkeeper, &amount);
-        
-        let blend_address = storage::get_blend(&e);
-        let soroswap_address = storage::get_soroswap(&e);
-        let collateral_token_address = storage::get_collateral_token_address(&e);
-
-        pegkeeper_client.flashloan_receive(&token, &e.current_contract_address(), &blend_address, &soroswap_address, &collateral_token_address, &amount, &loan_fee);
-
-        balance_after = token_client.balance(&e.current_contract_address());
-
-        if balance_after >= balance_before + amount + loan_fee {
-            token_client.burn(&e.current_contract_address(), &amount);
-            e.events().publish((FLASH_LOAN, symbol_short!("flashloan")), (amount, loan_fee));
-        } else {
-            panic_with_error!(&e, TreasuryError::FlashloanFailedError);
-        }
+        pegkeeper_client.flashloan_receive(&e.current_contract_address(), &amount);
     }
 
     fn get_token_address(e: Env) -> Address {

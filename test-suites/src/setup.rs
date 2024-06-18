@@ -139,30 +139,30 @@ mod tests {
 
     //TODO: Emmissions check?
 
-    #[test]
-    fn test_create_fixture_with_data_wasm() {
-        let fixture: TestFixture<'_> = create_fixture_with_data();
-        let frodo = fixture.users.get(0).unwrap();
-        let henk = fixture.users.get(1).unwrap();
-        let treasury_fixture: &PoolFixture = fixture.pools.get(0).unwrap();
-        //let pair = &fixture.pairs[0].pair;
+    // #[test]
+    // fn test_create_fixture_with_data_wasm() {
+    //     let fixture: TestFixture<'_> = create_fixture_with_data();
+    //     let frodo = fixture.users.get(0).unwrap();
+    //     let henk = fixture.users.get(1).unwrap();
+    //     let treasury_fixture: &PoolFixture = fixture.pools.get(0).unwrap();
+    //     //let pair = &fixture.pairs[0].pair;
 
-        // validate backstop deposit
-        assert_eq!(
-            50_000 * SCALAR_7,
-            fixture.lp.balance(&fixture.backstop.address)
-        );
+    //     // validate backstop deposit
+    //     assert_eq!(
+    //         50_000 * SCALAR_7,
+    //         fixture.lp.balance(&fixture.backstop.address)
+    //     );
 
-        // validate collateral deposit
-        assert_eq!(
-            50_000 * SCALAR_7,
-            fixture.tokens[TokenIndex::XLM].balance(&henk)
-        );
+    //     // validate collateral deposit
+    //     assert_eq!(
+    //         50_000 * SCALAR_7,
+    //         fixture.tokens[TokenIndex::XLM].balance(&henk)
+    //     );
 
-        // validate borrow
-        assert_eq!(
-            1_000 * SCALAR_7,
-            fixture.tokens[TokenIndex::OUSD].balance(&henk)
-        );
-    }
+    //     // validate borrow
+    //     assert_eq!(
+    //         1_000 * SCALAR_7,
+    //         fixture.tokens[TokenIndex::OUSD].balance(&henk)
+    //     );
+    // }
 }

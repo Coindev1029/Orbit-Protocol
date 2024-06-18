@@ -12,6 +12,7 @@ const TOKEN_SUPPLY_KEY: &str = "TokenSupply";
 const COLLATERAL_TOKEN_KEY: &str = "CollateralKey";
 const PEGKEEPER_KEY: &str = "Pegkeeper";
 const LOAN_FEE_KEY: &str = "LoanFee";
+const FLASHLOAN_FLAG: &str = "FloahsloanFlag";
 
 /// Bump the instance rent for the contract
 pub fn extend_instance(e: &Env) {
