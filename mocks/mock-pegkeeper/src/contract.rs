@@ -1,8 +1,5 @@
-use soroban_sdk::{contract, contractclient, contractimpl, panic_with_error, Address, Env, Symbol, log};
-use crate::{
-    dependencies::treasury::Client as TreasuryClient, 
-    errors::MockPegkeeperError, storage
-};
+use soroban_sdk::{contract, contractclient, contractimpl, log, panic_with_error, vec, Address, Env, IntoVal, Symbol, Val, Vec};
+use crate::{errors::MockPegkeeperError, storage};
 #[contract]
 pub struct MockPegkeeperContract;
 
@@ -112,12 +109,13 @@ impl MockPegkeeper for MockPegkeeperContract {
     }
 
     fn flash_loan(e: Env, token_address: Address, amount: i128) -> Result<(), MockPegkeeperError> {
-        // log!(&e, "=================================FlashLoan Function {:?}============================", token_address.clone().to_string());
+        log!(&e, "=================================FlashLoan Function ============================", token_address.clone().to_string());
         storage::extend_instance(&e);
         let treasury_address = storage::get_treasury(&e, token_address.clone());
-        // log!(&e, "=================================Treasury address {} {:?}============================", amount.clone(), treasury_address.clone().to_string());
-        let treasury_client = TreasuryClient::new(&e, &treasury_address);
-        treasury_client.flash_loan(&amount);
+        log!(&e, "=================================Treasury address ============================", amount.clone(), treasury_address.clone().to_string());
+        let mut init_args: Vec<Val> = vec![&e];
+        init_args.push_back(amount.into_val(&e));
+        e.invoke_contract::<Val>(&treasury_address, &Symbol::new(&e, "flash_loan"), init_args);
 
         Ok(())
     }
@@ -125,8 +123,8 @@ impl MockPegkeeper for MockPegkeeperContract {
         storage::extend_instance(&e);
     
         // treasury_address.require_auth();
-        // log!(&e, "=================================Receive {} {:?}============================", amount.clone(), treasury_address.clone().to_string());
-        // e.events().publish((Symbol::new(&e, "flash_loan_receive"), treasury_address.clone(), amount.clone()), "Success");
+        log!(&e, "=================================Receive============================");
+        e.events().publish((Symbol::new(&e, "flash_loan_receive"), treasury_address.clone(), amount.clone()), "Success");
 
         Ok(())
     }

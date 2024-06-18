@@ -1,6 +1,5 @@
 use crate::storage;
 use crate::dependencies::pool::{Client as PoolClient, Request};
-use crate::dependencies::pegkeeper::Client as PegkeeperClient;
 use sep_41_token::StellarAssetClient;
 use soroban_sdk::{contract, contractclient, contractimpl, Address, Env, IntoVal, vec, Vec, Val, Symbol, panic_with_error, log};
 use soroban_sdk::auth::{ContractContext, InvokerContractAuthEntry, SubContractInvocation};
@@ -219,9 +218,11 @@ impl MockTreasury for MockTreasuryContract {
         // std::println!("=================================Treasury FlashLoan Function============================");
         storage::extend_instance(&e);
         let pegkeeper: Address = storage::get_pegkeeper(&e);
-        let pegkeeper_client = PegkeeperClient::new(&e, &pegkeeper);
-
-        pegkeeper_client.flashloan_receive(&e.current_contract_address(), &amount);
+        
+        let mut init_args: Vec<Val> = vec![&e];
+        init_args.push_back(e.current_contract_address().to_val());
+        init_args.push_back(amount.into_val(&e));
+        e.invoke_contract::<Val>(&pegkeeper, &Symbol::new(&e, "flashloan_receive"), init_args);
     }
 
     fn get_token_address(e: Env) -> Address {

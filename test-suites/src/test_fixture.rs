@@ -20,6 +20,8 @@ use crate::dependencies::bridge_oracle::{BridgeOracleClient, create_bridge_oracl
 use crate::dependencies::pair_factory::{create_pair_factory, PairFactoryClient};
 use crate::dependencies::router::{create_router, RouterClient};
 use crate::dependencies::treasury_factory::{FactoryAsset, create_treasury_factory, TreasuryFactoryClient, TreasuryInitMeta};
+use crate::dependencies::mock_treasury::{create_mock_treasury, MockTreasuryClient};
+use crate::dependencies::mock_pegkeeper::{self, create_mock_pegkeeper, MockPegkeeperClient};
 
 pub const SCALAR_7: i128 = 1_000_0000;
 pub const SCALAR_9: i128 = 1_000_000_000;
@@ -66,6 +68,8 @@ pub struct TestFixture<'a> {
     pub pools: Vec<PoolFixture<'a>>,
     pub pairs: Vec<PairFixture<'a>>,
     pub tokens: Vec<MockTokenClient<'a>>,
+    pub mock_treasury: MockTreasuryClient<'a>,
+    pub mock_pegkeeper: MockPegkeeperClient<'a>
 }
 
 impl TestFixture<'_> {
@@ -73,6 +77,7 @@ impl TestFixture<'_> {
     ///
     /// Deploys BLND (0), USDC (1), wETH (2), XLM (3), and STABLE (4) test tokens, alongside all required
     /// Blend Protocol dependencies, including a BLND-USDC LP.
+    
     pub fn create<'a>() -> TestFixture<'a> {
         let e = Env::default();
         e.mock_all_auths();
@@ -95,7 +100,7 @@ impl TestFixture<'_> {
         let (blnd_id, blnd_client) = create_stellar_token(&e, &bombadil);
         let (usdc_id, usdc_client) = create_stellar_token(&e, &bombadil);
         let (xlm_id, xlm_client) = create_stellar_token(&e, &bombadil); // TODO: make native
-        let (_, ousd_client) = create_stellar_token(&e, &bombadil);
+        let (ousd_id, ousd_client) = create_stellar_token(&e, &bombadil);
 
         // deploy Blend Protocol dependencies
         let (backstop_id, backstop_client) = create_backstop(&e);
@@ -168,9 +173,16 @@ impl TestFixture<'_> {
 
         let (pair_factory_id, pair_factory_client) = create_pair_factory(&e);
         let pair_hash = e.deployer().upload_contract_wasm(PAIR_WASM);
-        let (_, router_client) = create_router(&e);
+        let (router_id, router_client) = create_router(&e);
         pair_factory_client.initialize(&bombadil, &pair_hash);
         router_client.initialize(&pair_factory_id);
+
+        let (mock_treasury_id, mock_treasury_client) = create_mock_treasury(&e);
+        let (mock_pegkeeper_id, mock_pegkeeper_client) = create_mock_pegkeeper(&e);
+
+        mock_treasury_client.initialize(&bombadil, &ousd_id, &blnd_id /* temporary */, &router_id, &blnd_id, &mock_pegkeeper_id);
+        mock_pegkeeper_client.initialize(&bombadil, &0_u64);
+        mock_pegkeeper_client.add_treasury(&ousd_id, &mock_treasury_id);
 
         let fixture = TestFixture {
             env: e,
@@ -193,6 +205,8 @@ impl TestFixture<'_> {
                 xlm_client,
                 ousd_client,
             ],
+            mock_treasury: mock_treasury_client,
+            mock_pegkeeper: mock_pegkeeper_client
         };
         fixture.jump(7 * 24 * 60 * 60);
         fixture
