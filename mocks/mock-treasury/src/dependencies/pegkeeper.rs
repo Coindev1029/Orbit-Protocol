@@ -1,3 +1,3 @@
 use soroban_sdk::contractimport;
 
-contractimport!(file = "../../wasm/mock_pegkeeper.wasm");
+contractimport!(file = "../../target/wasm32-unknown-unknown/release/mock_pegkeeper.wasm");

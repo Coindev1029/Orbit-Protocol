@@ -45,7 +45,14 @@ pub fn test_flash_loan_flow() {
     mock_pegkeeper_client.initialize(&admin, &0_u64);
     // std::println!("  hhhhhhhh {:?} {:?}", token.clone().to_string(), mock_treasury_id.clone().to_string());
     mock_pegkeeper_client.add_treasury(&token, &mock_treasury_id);
+
+    let test = mock_pegkeeper_client.get_treasury(&token);
+    std::println!("  hhhhhhhh {:?} {:?}", token.clone().to_string(), mock_treasury_id.clone().to_string());
+    std::println!("=============================Treasury Address==================================={:?}", test.clone().to_string());
+
+    std::println!("=============================Before FlashLoan Function Call===================================");
     mock_pegkeeper_client.flash_loan(&token, &1000);
+    std::println!("=============================After FlashLoan Function Call===================================");
 
     let events = e.events().all();
     // println!("{:?}", e.events().all());
