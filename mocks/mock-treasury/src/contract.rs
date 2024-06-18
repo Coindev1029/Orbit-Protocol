@@ -11,10 +11,10 @@ use token::StellarAssetClient as TokenAdminClient;
 const FLASH_LOAN: Symbol = symbol_short!("FLASHLOAN");
 
 #[contract]
-pub struct TreasuryContract;
+pub struct MockTreasuryContract;
 
-#[contractclient(name="TreasuryClient")]
-pub trait Treasury {
+#[contractclient(name="MockTreasuryClient")]
+pub trait MockTreasury {
 
     /// Initialize the treasury
     ///
@@ -94,7 +94,7 @@ pub trait Treasury {
 }
 
 #[contractimpl]
-impl Treasury for TreasuryContract {
+impl MockTreasury for MockTreasuryContract {
 
     fn initialize(e: Env, admin: Address, token: Address, blend_pool: Address, soroswap: Address, collateral_token_address: Address, new_pegkeeper: Address) {
         storage::extend_instance(&e);
@@ -227,7 +227,7 @@ impl Treasury for TreasuryContract {
         let pegkeeper: Address = storage::get_pegkeeper(&e);
         let pegkeeper_client = PegkeeperClient::new(&e, &pegkeeper);
 
-        // pegkeeper_client.flashloan_receive(&token, &e.current_contract_address(), &blend_address, &soroswap_address, &collateral_token_address, &amount, &loan_fee);
+        pegkeeper_client.flashloan_receive(&e.current_contract_address(), &amount);
     }
 
     fn get_token_address(e: Env) -> Address {
