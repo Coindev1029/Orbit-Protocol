@@ -1,6 +1,4 @@
-use soroban_sdk::{Address, Env, Symbol, symbol_short, unwrap::UnwrapOptimized, contracttype};
-
-use crate::dependencies::treasury;
+use soroban_sdk::{Address, Env, unwrap::UnwrapOptimized, contracttype};
 
 const ONE_DAY_LEDGERS: u32 = 17280; // assumes 5s a ledger
 
@@ -29,7 +27,7 @@ pub fn is_init(e: &Env) -> bool { e.storage().instance().has(&DataKey::ADMIN) }
 ///
 /// ### Panics
 /// If the admin does not exist
-pub fn get_admin(e: &Env) -> Address {
+pub fn _get_admin(e: &Env) -> Address {
     e.storage()
         .instance()
         .get(&DataKey::ADMIN)
@@ -69,7 +67,7 @@ pub fn set_treasury(e: &Env, token_address: Address, treasury_address: &Address)
 
 /// Fetch the current balance
 ///
-pub fn get_balance(e: &Env) -> i128 {
+pub fn _get_balance(e: &Env) -> i128 {
     e.storage()
         .instance()
         .get(&DataKey::BALANCE)

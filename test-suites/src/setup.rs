@@ -1,7 +1,7 @@
 use soroban_sdk::{testutils::Address as _, vec as svec, Address, Symbol};
 
 use crate::{
-    dependencies::pool::{default_reserve_metadata, ReserveEmissionMetadata},
+    dependencies::pool::ReserveEmissionMetadata,
     test_fixture::{TestFixture, TokenIndex, SCALAR_7},
 };
 use crate::dependencies::pool::{Request, RequestType, ReserveConfig};
@@ -133,9 +133,6 @@ pub fn create_fixture_with_data<'a>() -> TestFixture<'a> {
 
 #[cfg(test)]
 mod tests {
-    use crate::test_fixture::{PoolFixture};
-
-    use super::*;
 
     //TODO: Emmissions check?
 

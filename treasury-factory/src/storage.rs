@@ -93,11 +93,11 @@ pub fn get_soroswap(e: &Env) -> Address {
 ///
 /// ### Arguments
 /// * `new_soroswap_address` - The Address for the soroswap
-pub fn set_soroswap(e: &Env, new_soroswap_address: &Address) {
-    e.storage()
-        .instance()
-        .set::<Symbol, Address>(&Symbol::new(e, SOROSWAP_KEY), new_soroswap_address);
-}
+// pub fn set_soroswap(e: &Env, new_soroswap_address: &Address) {
+//     e.storage()
+//         .instance()
+//         .set::<Symbol, Address>(&Symbol::new(e, SOROSWAP_KEY), new_soroswap_address);
+// }
 
 /// Fetch the pool initialization metadata
 pub fn get_pool_init_meta(e: &Env) -> TreasuryInitMeta {

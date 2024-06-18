@@ -12,7 +12,6 @@ const TOKEN_SUPPLY_KEY: &str = "TokenSupply";
 const COLLATERAL_TOKEN_KEY: &str = "CollateralKey";
 const PEGKEEPER_KEY: &str = "Pegkeeper";
 const LOAN_FEE_KEY: &str = "LoanFee";
-const FLASHLOAN_FLAG: &str = "FloahsloanFlag";
 
 /// Bump the instance rent for the contract
 pub fn extend_instance(e: &Env) {
@@ -141,12 +140,12 @@ pub fn set_token_supply(e: &Env, supply: &i128) {
 ///
 /// ### Panics
 /// If the loan fee does not exist
-pub fn get_loan_fee(e: &Env) -> i128 {
-    e.storage()
-        .instance()
-        .get(&Symbol::new(e, LOAN_FEE_KEY))
-        .unwrap_optimized()
-}
+// pub fn get_loan_fee(e: &Env) -> i128 {
+//     e.storage()
+//         .instance()
+//         .get(&Symbol::new(e, LOAN_FEE_KEY))
+//         .unwrap_optimized()
+// }
 
 /// Set the loan fee
 ///

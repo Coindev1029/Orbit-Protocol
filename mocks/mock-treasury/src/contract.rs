@@ -1,14 +1,10 @@
-use crate::storage::{self, get_loan_fee};
+use crate::storage;
 use crate::dependencies::pool::{Client as PoolClient, Request};
-use crate::dependencies::pegkeeper::{self, Client as PegkeeperClient};
+use crate::dependencies::pegkeeper::Client as PegkeeperClient;
 use sep_41_token::StellarAssetClient;
-use soroban_sdk::{contract, contractclient, contractimpl, Address, Env, IntoVal, vec, Vec, Val, Symbol, symbol_short, token, panic_with_error};
+use soroban_sdk::{contract, contractclient, contractimpl, Address, Env, IntoVal, vec, Vec, Val, Symbol, panic_with_error};
 use soroban_sdk::auth::{ContractContext, InvokerContractAuthEntry, SubContractInvocation};
 use crate::errors::MockTreasuryError;
-use token::Client as TokenClient;
-use token::StellarAssetClient as TokenAdminClient;
-
-const FLASH_LOAN: Symbol = symbol_short!("FLASHLOAN");
 
 #[contract]
 pub struct MockTreasuryContract;

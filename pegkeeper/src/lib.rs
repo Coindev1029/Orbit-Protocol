@@ -6,6 +6,5 @@ mod storage;
 mod contract;
 mod dependencies;
 mod errors;
-mod reentry;
 
 pub use contract::*;
