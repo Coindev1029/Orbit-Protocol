@@ -2,10 +2,9 @@ use crate::storage;
 use crate::dependencies::pool::{Client as PoolClient, Request};
 use crate::dependencies::pegkeeper::Client as PegkeeperClient;
 use sep_41_token::StellarAssetClient;
-use soroban_sdk::{contract, contractclient, contractimpl, Address, Env, IntoVal, vec, Vec, Val, Symbol, panic_with_error};
+use soroban_sdk::{contract, contractclient, contractimpl, Address, Env, IntoVal, vec, Vec, Val, Symbol, panic_with_error, log};
 use soroban_sdk::auth::{ContractContext, InvokerContractAuthEntry, SubContractInvocation};
 use crate::errors::MockTreasuryError;
-
 #[contract]
 pub struct MockTreasuryContract;
 
@@ -120,9 +119,7 @@ impl MockTreasury for MockTreasuryContract {
 
     fn set_pegkeeper(e: Env, new_pegkeeper: Address) {
         storage::extend_instance(&e);
-        let admin: Address = storage::get_admin(&e);
-        admin.require_auth();
-        // new_pegkeeper.require_auth();
+
         storage::set_pegkeeper(&e, &new_pegkeeper);
         //e.events().publish(Symbol::new(e, "set_admin"), admin, new_admin);
     }
@@ -219,6 +216,7 @@ impl MockTreasury for MockTreasuryContract {
     }
 
     fn flash_loan(e: Env, amount: i128) {
+        // std::println!("=================================Treasury FlashLoan Function============================");
         storage::extend_instance(&e);
         let pegkeeper: Address = storage::get_pegkeeper(&e);
         let pegkeeper_client = PegkeeperClient::new(&e, &pegkeeper);

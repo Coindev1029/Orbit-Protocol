@@ -3,7 +3,6 @@ use crate::{
     dependencies::treasury::Client as TreasuryClient, 
     errors::MockPegkeeperError, storage
 };
-
 #[contract]
 pub struct MockPegkeeperContract;
 
@@ -113,25 +112,21 @@ impl MockPegkeeper for MockPegkeeperContract {
     }
 
     fn flash_loan(e: Env, token_address: Address, amount: i128) -> Result<(), MockPegkeeperError> {
+        // log!(&e, "=================================FlashLoan Function {:?}============================", token_address.clone().to_string());
         storage::extend_instance(&e);
-
-        e.events().publish((Symbol::new(&e, "start_flash_loan"), token_address.clone(), amount.clone()), "Success");
         let treasury_address = storage::get_treasury(&e, token_address.clone());
-        
-        log!(&e, "Treasury_address {}", treasury_address);
+        // log!(&e, "=================================Treasury address {} {:?}============================", amount.clone(), treasury_address.clone().to_string());
+        let treasury_client = TreasuryClient::new(&e, &treasury_address);
+        treasury_client.flash_loan(&amount);
 
-        let _treasury_client = TreasuryClient::new(&e, &treasury_address);
-        // treasury_client.flash_loan(&amount);
-
-        e.events().publish((Symbol::new(&e, "call_flash_loan"), token_address.clone(), amount.clone()), "Success");
         Ok(())
     }
     fn flashloan_receive(e: Env, treasury_address: Address, amount: i128) -> Result<(), MockPegkeeperError> {
         storage::extend_instance(&e);
     
-        treasury_address.require_auth();
-        
-        e.events().publish((Symbol::new(&e, "flash_loan_receive"), treasury_address.clone(), amount.clone()), "Success");
+        // treasury_address.require_auth();
+        // log!(&e, "=================================Receive {} {:?}============================", amount.clone(), treasury_address.clone().to_string());
+        // e.events().publish((Symbol::new(&e, "flash_loan_receive"), treasury_address.clone(), amount.clone()), "Success");
 
         Ok(())
     }
