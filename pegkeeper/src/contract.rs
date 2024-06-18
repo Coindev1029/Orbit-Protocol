@@ -1,10 +1,7 @@
-#![no_std]
-use core::array;
-
-use soroban_sdk::{contract, contractclient, contractimpl, panic_with_error, token, Address, Env, vec};
+use soroban_sdk::{contract, contractclient, contractimpl, panic_with_error, Address, Env, vec};
 use crate::{
     balances, dependencies::{
-        blend::{Client as BlendClient, Positions, Request}, 
+        blend::{Client as BlendClient, Request}, 
         router::Client as SoroswapRouter, 
         treasury::Client as TreasuryClient
     }, 
@@ -93,8 +90,8 @@ impl Pegkeeper for PegkeeperContract {
 
     fn set_admin(e: Env, admin: Address) {
         storage::extend_instance(&e);
-        let admin = storage::get_admin(&e);
-        admin.require_auth();
+        let old_admin = storage::get_admin(&e);
+        old_admin.require_auth();
 
         storage::set_admin(&e, &admin);
     }

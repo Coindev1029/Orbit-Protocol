@@ -4,7 +4,7 @@
 use std::println;
 
 use soroban_sdk::testutils::Events;
-use soroban_sdk::{testutils::Address as _, Address, Env, vec, Symbol, IntoVal, Val};
+use soroban_sdk::{testutils::Address as _, Address, Env, vec, Symbol, IntoVal};
 use crate::{MockPegkeeperContract, MockPegkeeperClient};
 use crate::dependencies::treasury::{Client as MockTreasuryClient, WASM as TREASURY_WASM};
 extern crate std;
@@ -39,7 +39,7 @@ pub fn test_flash_loan_flow() {
     let mock_treasury_id = e.register_contract_wasm(None, TREASURY_WASM);
 
     let mock_pegkeeper_client = MockPegkeeperClient::new(&e, &mock_pegkeeper_id);
-    let mock_treasury_client = MockTreasuryClient::new(&e, &mock_treasury_id);
+    let _mock_treasury_client = MockTreasuryClient::new(&e, &mock_treasury_id);
     let admin = Address::generate(&e);
     let token = Address::generate(&e);
 
@@ -51,7 +51,6 @@ pub fn test_flash_loan_flow() {
     println!("{:?}", e.events().all());
     assert_eq!(events.len(), 2);
 
-    let k = events.get_unchecked(1);
     let event = vec![&e, events.get_unchecked(events.len() - 1)];
     assert_eq!(
         event,
@@ -60,7 +59,7 @@ pub fn test_flash_loan_flow() {
             (
                 mock_pegkeeper_id.clone(),
                 (Symbol::new(&e, "flash_loan_receive"), token, 1000i128).into_val(&e),
-                ("Success").into_val(&e)
+                "Success".into_val(&e)
             )
         ]
     );

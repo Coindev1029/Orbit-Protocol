@@ -1,6 +1,4 @@
-use soroban_sdk::{Address, Env, Symbol, symbol_short, unwrap::UnwrapOptimized, contracttype};
-
-use crate::dependencies::treasury;
+use soroban_sdk::{Address, Env, unwrap::UnwrapOptimized, contracttype};
 
 const ONE_DAY_LEDGERS: u32 = 17280; // assumes 5s a ledger
 
