@@ -1,7 +1,7 @@
 use crate::storage;
 use crate::dependencies::pool::{Client as PoolClient, Request};
 use sep_41_token::StellarAssetClient;
-use soroban_sdk::{contract, contractclient, contractimpl, Address, Env, IntoVal, vec, Vec, Val, Symbol, panic_with_error, log};
+use soroban_sdk::{contract, contractclient, contractimpl, Address, Env, IntoVal, vec, Vec, Val, Symbol, panic_with_error};
 use soroban_sdk::auth::{ContractContext, InvokerContractAuthEntry, SubContractInvocation};
 use crate::errors::MockTreasuryError;
 #[contract]
@@ -220,7 +220,7 @@ impl MockTreasury for MockTreasuryContract {
     fn flash_loan(e: Env, amount: i128) {
         // std::println!("=================================Treasury FlashLoan Function============================");
         storage::extend_instance(&e);
-        let pegkeeper: Address = storage::get_pegkeeper(&e);
+        let _pegkeeper: Address = storage::get_pegkeeper(&e);
         
         let mut init_args: Vec<Val> = vec![&e];
         init_args.push_back(e.current_contract_address().to_val());

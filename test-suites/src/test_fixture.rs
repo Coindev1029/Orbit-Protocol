@@ -14,14 +14,14 @@ use crate::dependencies::pair::{PAIR_WASM, PairClient};
 use sep_40_oracle::testutils::{Asset, MockPriceOracleClient};
 use sep_41_token::testutils::{MockTokenClient};
 use soroban_sdk::testutils::{Address as _, BytesN as _, Ledger, LedgerInfo};
-use soroban_sdk::{vec as svec, Address, BytesN, Env, Map, Symbol, Val, IntoVal};
+use soroban_sdk::{vec as svec, Address, BytesN, Env, Map, Symbol};
 use crate::dependencies::treasury::{TreasuryClient, TREASURY_WASM};
 use crate::dependencies::bridge_oracle::{BridgeOracleClient, create_bridge_oracle};
 use crate::dependencies::pair_factory::{create_pair_factory, PairFactoryClient};
 use crate::dependencies::router::{create_router, RouterClient};
 use crate::dependencies::treasury_factory::{FactoryAsset, create_treasury_factory, TreasuryFactoryClient, TreasuryInitMeta};
 use crate::dependencies::mock_treasury::{create_mock_treasury, MockTreasuryClient};
-use crate::dependencies::mock_pegkeeper::{self, create_mock_pegkeeper, MockPegkeeperClient};
+use crate::dependencies::mock_pegkeeper::{create_mock_pegkeeper, MockPegkeeperClient};
 
 pub const SCALAR_7: i128 = 1_000_0000;
 pub const SCALAR_9: i128 = 1_000_000_000;
