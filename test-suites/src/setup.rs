@@ -133,33 +133,63 @@ pub fn create_fixture_with_data<'a>() -> TestFixture<'a> {
 
 #[cfg(test)]
 mod tests {
+    use soroban_sdk::testutils::{Events, Logs};
 
-    //TODO: Emmissions check?
 
-    // #[test]
-    // fn test_create_fixture_with_data_wasm() {
-    //     let fixture: TestFixture<'_> = create_fixture_with_data();
-    //     let frodo = fixture.users.get(0).unwrap();
-    //     let henk = fixture.users.get(1).unwrap();
-    //     let treasury_fixture: &PoolFixture = fixture.pools.get(0).unwrap();
-    //     //let pair = &fixture.pairs[0].pair;
+    #[test]
+    fn test_create_fixture_with_data_wasm() {
+        // use crate::test_fixture::PoolFixture;
 
-    //     // validate backstop deposit
-    //     assert_eq!(
-    //         50_000 * SCALAR_7,
-    //         fixture.lp.balance(&fixture.backstop.address)
-    //     );
+        use super::*;
 
-    //     // validate collateral deposit
-    //     assert_eq!(
-    //         50_000 * SCALAR_7,
-    //         fixture.tokens[TokenIndex::XLM].balance(&henk)
-    //     );
+        let fixture = TestFixture::create();
+        // let frodo = fixture.users.get(0).unwrap();
+        // let henk = fixture.users.get(1).unwrap();
+        // let treasury_fixture: &PoolFixture = fixture.pools.get(0).unwrap();
+        //let pair = &fixture.pairs[0].pair;
 
-    //     // validate borrow
-    //     assert_eq!(
-    //         1_000 * SCALAR_7,
-    //         fixture.tokens[TokenIndex::OUSD].balance(&henk)
-    //     );
-    // }
+        let token_address = &fixture.tokens[TokenIndex::OUSD].address;
+        std::println!("****  Mock pegkeeper {:?}", fixture.mock_pegkeeper.address.to_string());
+        std::println!("****  Mock treasury {:?}", fixture.mock_treasury.address.to_string());
+        std::println!("****  Borrow token address {:?}", token_address.clone().to_string());
+        std::println!("****  Treasury address for token {:?}", fixture.mock_pegkeeper.get_treasury(&token_address));
+        std::println!("****  Pegkeeper address for Treasury {:?}", fixture.mock_treasury.get_pegkeeper_address());
+
+        fixture.mock_pegkeeper.flash_loan(&token_address, &1000i128);
+        fixture.mock_pegkeeper.flashloan_receive(&fixture.tokens[TokenIndex::OUSD].address, &100i128);
+        
+        let logs = fixture.env.logs().all();
+        std::println!("****  Logs length {}", logs.len());
+        for log in logs {
+            std::println!("****  log - {:?}", log);
+        }
+        let events = fixture.env.events().all();
+        std::println!("****  Events length {}", fixture.mock_pegkeeper.env.events().all().len());
+        for event in events {
+            let list = event.1;
+            std::println!("****  Event {:?}", event.0);
+            for item in list {
+                std::println!("****  Item {:?}", item);
+            }
+            std::println!("****  Event Lst {:?}", event.2);
+        }
+
+        // validate backstop deposit
+        // assert_eq!(
+        //     50_000 * SCALAR_7,
+        //     fixture.lp.balance(&fixture.backstop.address)
+        // );
+
+        // // validate collateral deposit
+        // assert_eq!(
+        //     50_000 * SCALAR_7,
+        //     fixture.tokens[TokenIndex::XLM].balance(&henk)
+        // );
+
+        // // validate borrow
+        // assert_eq!(
+        //     1_000 * SCALAR_7,
+        //     fixture.tokens[TokenIndex::OUSD].balance(&henk)
+        // );
+    }
 }
