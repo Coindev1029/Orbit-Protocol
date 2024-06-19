@@ -1,9 +1,12 @@
-use crate::storage;
-use crate::dependencies::pool::{Client as PoolClient, Request};
+use crate::{storage, token_utility::*};
+use crate::dependencies::{
+    pool::{Client as PoolClient, Request},
+    receiver::Client as MockReceiverClient,
+};
 use sep_41_token::StellarAssetClient;
-use soroban_sdk::{contract, contractclient, contractimpl, Address, Env, IntoVal, vec, Vec, Val, Symbol, panic_with_error};
+use soroban_sdk::{contract, contractclient, contractimpl, panic_with_error, symbol_short, token, vec, Address, Env, IntoVal, Symbol, Val, Vec};
 use soroban_sdk::auth::{ContractContext, InvokerContractAuthEntry, SubContractInvocation};
-use crate::errors::MockTreasuryError;
+use crate::{errors::MockTreasuryError, balances::*};
 #[contract]
 pub struct MockTreasuryContract;
 
@@ -49,11 +52,12 @@ pub trait MockTreasury {
     /// (pegkeeper only) only regiestered pegkeeper can call this function and flashloan by using this function
     ///
     /// ### Arguments
-    /// * `new_pegkeeper` - The new pegkeeper address
+    /// * `receiver_address` - The receiver address
+    /// * `amount` - The amount for the flashloan
     ///
     /// ### Panics
     /// If the caller is not the pegkeeper
-    fn flash_loan(e: Env, amount: i128);
+    fn flash_loan(e: Env, receiver_address: Address, amount: i128) -> Result<(), MockTreasuryError>;
 
     /// (Admin only) Increase the supply of the pool
     ///
@@ -217,15 +221,24 @@ impl MockTreasury for MockTreasuryContract {
         //e.events().publish(Symbol::new(&e, "decrease_supply"), admin);
     }
 
-    fn flash_loan(e: Env, amount: i128) {
-        // std::println!("=================================Treasury FlashLoan Function============================");
+    fn flash_loan(e: Env, receiver_address: Address, amount: i128) -> Result<(), MockTreasuryError> {
         storage::extend_instance(&e);
-        let _pegkeeper: Address = storage::get_pegkeeper(&e);
         
-        let mut init_args: Vec<Val> = vec![&e];
-        init_args.push_back(e.current_contract_address().to_val());
-        init_args.push_back(amount.into_val(&e));
-        // e.invoke_contract::<Val>(&pegkeeper, &Symbol::new(&e, "flashloan_receive"), init_args);
+        check_amount_current(amount)?;
+
+        let token_client = get_token_client(&e);
+
+        transfer(&e, &token_client, &receiver_address, &amount);
+        let fee = compute_fee(&amount);
+
+        MockReceiverClient::new(&e, &receiver_address).execute_operation(&e.current_contract_address(), &token_client.address, &amount, &fee);
+
+        try_repay(&e, &token_client, &receiver_address, amount, fee)?;
+
+        let topics = (Symbol::new(&e, "flash loan"), receiver_address);
+        e.events().publish(topics, amount);
+
+        Ok(())
     }
 
     fn get_token_address(e: Env) -> Address {

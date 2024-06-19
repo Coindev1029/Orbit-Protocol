@@ -432,6 +432,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "28dea519a9695b9977216879a3ebfddf92f1c08c05d984f8996aecd6ecdc811d"
 
 [[package]]
+name = "fixed-point-math"
+version = "0.0.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7d8c494ccd0b270d97dc51d5f0de703b9d18a489c26f0328e409f6feba55a640"
+
+[[package]]
 name = "fnv"
 version = "1.0.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -681,6 +687,7 @@ dependencies = [
 name = "mock-treasury"
 version = "0.1.0"
 dependencies = [
+ "fixed-point-math",
  "sep-41-token",
  "soroban-sdk",
 ]
