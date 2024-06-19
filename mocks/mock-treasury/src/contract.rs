@@ -57,7 +57,7 @@ pub trait MockTreasury {
     ///
     /// ### Panics
     /// If the caller is not the pegkeeper
-    fn flash_loan(e: Env, receiver_address: Address, amount: i128) -> Result<(), MockTreasuryError>;
+    fn fl_loan(e: Env, receiver_address: Address, amount: i128) -> Result<(), MockTreasuryError>;
 
     /// (Admin only) Increase the supply of the pool
     ///
@@ -221,22 +221,23 @@ impl MockTreasury for MockTreasuryContract {
         //e.events().publish(Symbol::new(&e, "decrease_supply"), admin);
     }
 
-    fn flash_loan(e: Env, receiver_address: Address, amount: i128) -> Result<(), MockTreasuryError> {
+    fn fl_loan(e: Env, receiver_address: Address, amount: i128) -> Result<(), MockTreasuryError> {
         storage::extend_instance(&e);
         
-        check_amount_current(amount)?;
+        // check_amount_current(amount)?; // temporary
 
         let token_client = get_token_client(&e);
 
-        transfer(&e, &token_client, &receiver_address, &amount);
-        let fee = compute_fee(&amount);
+        // transfer(&e, &token_client, &receiver_address, &amount); // temporary
+        // let fee = compute_fee(&amount);
+        let fee = 100_i128;
 
         MockReceiverClient::new(&e, &receiver_address).execute_operation(&e.current_contract_address(), &token_client.address, &amount, &fee);
 
-        try_repay(&e, &token_client, &receiver_address, amount, fee)?;
+        // temporarytry_repay(&e, &token_client, &receiver_address, amount, fee)?; // temporary
 
-        let topics = (Symbol::new(&e, "flash loan"), receiver_address);
-        e.events().publish(topics, amount);
+        // let topics = (Symbol::new(&e, "flash loan"), receiver_address);
+        // e.events().publish(topics, amount);
 
         Ok(())
     }

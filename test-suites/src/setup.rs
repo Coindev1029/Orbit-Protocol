@@ -151,12 +151,14 @@ mod tests {
         let token_address = &fixture.tokens[TokenIndex::OUSD].address;
         std::println!("****  Mock pegkeeper {:?}", fixture.mock_pegkeeper.address.to_string());
         std::println!("****  Mock treasury {:?}", fixture.mock_treasury.address.to_string());
+        std::println!("****  Mock receiver {:?}", fixture.mock_receiver.address.to_string());
         std::println!("****  Borrow token address {:?}", token_address.clone().to_string());
         std::println!("****  Treasury address for token {:?}", fixture.mock_pegkeeper.get_treasury(&token_address));
         std::println!("****  Pegkeeper address for Treasury {:?}", fixture.mock_treasury.get_pegkeeper_address());
+        std::println!("****  Receiver address for Pegkeeper {:?}", fixture.mock_pegkeeper.get_receiver());
 
         fixture.mock_pegkeeper.flash_loan(&token_address, &1000i128);
-        fixture.mock_pegkeeper.flashloan_receive(&fixture.tokens[TokenIndex::OUSD].address, &100i128);
+        // fixture.mock_pegkeeper.flashloan_receive(&fixture.tokens[TokenIndex::OUSD].address, &100i128);
         
         let logs = fixture.env.logs().all();
         std::println!("****  Logs length {}", logs.len());

@@ -36,6 +36,7 @@ impl MockReceiver for MockReceiverContract {
     fn execute_operation(e: Env, caller: Address, token: Address, amount: i128, fee: i128) {
         caller.require_auth();
 
+        /*
         let token_client = token::Client::new(
             &e,
             &token
@@ -52,6 +53,7 @@ impl MockReceiver for MockReceiverContract {
             &total_amount,
             &(e.ledger().sequence() + 1),
         );
+        */
     }
 }
 
