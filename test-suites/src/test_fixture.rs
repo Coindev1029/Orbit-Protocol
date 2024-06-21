@@ -13,8 +13,9 @@ use crate::dependencies::pool_factory::{create_pool_factory, PoolFactoryClient, 
 use crate::dependencies::pair::{PAIR_WASM, PairClient};
 use sep_40_oracle::testutils::{Asset, MockPriceOracleClient};
 use sep_41_token::testutils::{MockTokenClient};
+use soroban_sdk::log;
 use soroban_sdk::testutils::{Address as _, BytesN as _, Ledger, LedgerInfo};
-use soroban_sdk::{vec as svec, Address, BytesN, Env, Map, Symbol};
+use soroban_sdk::{vec as svec, Address, BytesN, Env, Map, Symbol, testutils::Logs};
 use crate::dependencies::treasury::{TreasuryClient, TREASURY_WASM};
 use crate::dependencies::bridge_oracle::{BridgeOracleClient, create_bridge_oracle};
 use crate::dependencies::pair_factory::{create_pair_factory, PairFactoryClient};
@@ -97,7 +98,9 @@ impl TestFixture<'_> {
             min_persistent_entry_ttl: 500000,
             max_entry_ttl: 9999999,
         });
-
+        
+        // log!(&e, "Start!!!! {}", "welcome".to_string());
+        // std::println!("Hi you");
         // deploy tokens
         let (blnd_id, blnd_client) = create_stellar_token(&e, &bombadil);
         let (usdc_id, usdc_client) = create_stellar_token(&e, &bombadil);
@@ -179,6 +182,8 @@ impl TestFixture<'_> {
         pair_factory_client.initialize(&bombadil, &pair_hash);
         router_client.initialize(&pair_factory_id);
 
+        // std::println!("===========================Mock Flashloan Initialize Start=========================");
+
         let (mock_treasury_id, mock_treasury_client) = create_mock_treasury(&e);
         let (mock_pegkeeper_id, mock_pegkeeper_client) = create_mock_pegkeeper(&e);
         let (mock_receiver_id, mock_receiver_client) = create_mock_receiver(&e);
@@ -188,6 +193,11 @@ impl TestFixture<'_> {
         mock_pegkeeper_client.add_treasury(&ousd_id, &mock_treasury_id);
         mock_pegkeeper_client.set_receiver(&mock_receiver_id);
         mock_receiver_client.initialize(&mock_pegkeeper_id);
+
+        // std::println!("===========================Mock Flashloan Initialize End==========================");
+
+        // mock_pegkeeper_client.flash_loan(&ousd_id, &123_i128);
+        // std::println!("{}", e.logs().all().join("\n"));
 
         let fixture = TestFixture {
             env: e,

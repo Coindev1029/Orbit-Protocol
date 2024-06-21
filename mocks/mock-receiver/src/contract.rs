@@ -1,4 +1,4 @@
-use soroban_sdk::{contract, contractclient, contractimpl, panic_with_error, Address, Env, token};
+use soroban_sdk::{contract, contractclient, contractimpl, log, panic_with_error, token, Address, Env};
 use crate::{errors::MockReceiverError, storage};
 #[contract]
 pub struct MockReceiverContract;
@@ -36,6 +36,7 @@ impl MockReceiver for MockReceiverContract {
     fn execute_operation(e: Env, caller: Address, token: Address, amount: i128, fee: i128) {
         caller.require_auth();
 
+        log!(&e, "================================= Receiveer Function Start ================================");
         /*
         let token_client = token::Client::new(
             &e,
@@ -54,6 +55,7 @@ impl MockReceiver for MockReceiverContract {
             &(e.ledger().sequence() + 1),
         );
         */
+        log!(&e, "================================= Receiveer Function End ================================");
     }
 }
 

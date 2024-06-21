@@ -6,6 +6,10 @@ license = "AGPL-3.0"
 edition = "2021"
 publish = false
 
+[profile.release-with-logs]
+inherits = "release"
+debug-assertions = true
+
 [lib]
 crate-type = ["rlib"]
 doctest = false

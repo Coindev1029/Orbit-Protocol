@@ -62,7 +62,7 @@ pub trait MockPegkeeper {
     ///
     /// ### Panics
     /// If there is no profit
-    fn flashloan_receive(e: Env, treasury_address: Address, amount: i128) -> Result<(), MockPegkeeperError>;
+    // fn flashloan_receive(e: Env, treasury_address: Address, amount: i128) -> Result<(), MockPegkeeperError>;
     
     /// Get token address
     fn get_treasury(e: Env, token_address: Address) -> Address;
@@ -129,26 +129,28 @@ impl MockPegkeeper for MockPegkeeperContract {
     }
 
     fn flash_loan(e: Env, token_address: Address, amount: i128) -> Result<(), MockPegkeeperError> {
-        log!(&e, "=================================FlashLoan Function ============================", token_address.clone().to_string());
+        log!(&e, "================================= Pegkeeper FlashLoan Function Start ============================");
         storage::extend_instance(&e);
         let treasury_address = storage::get_treasury(&e, token_address.clone());
         let receiver_address = storage::get_receiver(&e);
-        log!(&e, "=================================Treasury address ============================", amount.clone(), treasury_address.clone().to_string());
+        // log!(&e, "=================================Treasury address ============================");
         let mut init_args: Vec<Val> = vec![&e];
         init_args.push_back(receiver_address.into_val(&e));
         init_args.push_back(amount.into_val(&e));
         e.invoke_contract::<Val>(&treasury_address, &symbol_short!("fl_loan"), init_args);
-
+        log!(&e, "================================= Pegkeeper FlashLoan End ================================");
+        
         Ok(())
     }
-    fn flashloan_receive(e: Env, treasury_address: Address, amount: i128) -> Result<(), MockPegkeeperError> {
-        storage::extend_instance(&e);
+
+    // fn flashloan_receive(e: Env, treasury_address: Address, amount: i128) -> Result<(), MockPegkeeperError> {
+    //     storage::extend_instance(&e);
     
-        // treasury_address.require_auth();
-        log!(&e, "=================================Receive============================");
-        e.events().publish((Symbol::new(&e, "flash_loan_receive"), treasury_address.clone(), amount.clone()), "Success");
+    //     // treasury_address.require_auth();
+    //     log!(&e, "=================================Receive============================");
+    //     e.events().publish((Symbol::new(&e, "flash_loan_receive"), treasury_address.clone(), amount.clone()), "Success");
 
-        Ok(())
-    }
+    //     Ok(())
+    // }
 }
 

@@ -4,7 +4,7 @@ use crate::dependencies::{
     receiver::Client as MockReceiverClient,
 };
 use sep_41_token::StellarAssetClient;
-use soroban_sdk::{contract, contractclient, contractimpl, panic_with_error, symbol_short, token, vec, Address, Env, IntoVal, Symbol, Val, Vec};
+use soroban_sdk::{contract, contractclient, contractimpl, log, panic_with_error, symbol_short, token, vec, Address, Env, IntoVal, Symbol, Val, Vec};
 use soroban_sdk::auth::{ContractContext, InvokerContractAuthEntry, SubContractInvocation};
 use crate::{errors::MockTreasuryError, balances::*};
 #[contract]
@@ -224,6 +224,7 @@ impl MockTreasury for MockTreasuryContract {
     fn fl_loan(e: Env, receiver_address: Address, amount: i128) -> Result<(), MockTreasuryError> {
         storage::extend_instance(&e);
         
+        log!(&e, "================================= Treasury FlashLoan Function Start ============================");
         // check_amount_current(amount)?; // temporary
 
         let token_client = get_token_client(&e);
@@ -233,6 +234,8 @@ impl MockTreasury for MockTreasuryContract {
         let fee = 100_i128;
 
         MockReceiverClient::new(&e, &receiver_address).execute_operation(&e.current_contract_address(), &token_client.address, &amount, &fee);
+
+        log!(&e, "================================= Treasury FlashLoan Function End ============================");
 
         // temporarytry_repay(&e, &token_client, &receiver_address, amount, fee)?; // temporary
 
