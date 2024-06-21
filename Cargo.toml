@@ -40,3 +40,6 @@ version = "0.2.0"
 
 [workspace.dependencies.sep-41-token]
 version = "0.3.0"
+
+[workspace.dependencies.fixed-point-math]
+version = "0.0.2"

@@ -13,3 +13,4 @@ pub mod pair;
 pub mod router;
 pub mod mock_treasury;
 pub mod mock_pegkeeper;
+pub mod mock_receiver;

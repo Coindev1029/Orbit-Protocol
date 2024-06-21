@@ -1,4 +1,4 @@
-use soroban_sdk::{testutils::Address as _, vec as svec, Address, Symbol};
+use soroban_sdk::{log, testutils::{Address as _, Logs}, vec as svec, Address, Symbol, Env};
 
 use crate::{
     dependencies::pool::ReserveEmissionMetadata,
@@ -137,7 +137,7 @@ mod tests {
 
 
     #[test]
-    fn test_create_fixture_with_data_wasm() {
+    fn test_mock_pegkeeper_flashloan() {
         // use crate::test_fixture::PoolFixture;
 
         use super::*;
@@ -149,31 +149,42 @@ mod tests {
         //let pair = &fixture.pairs[0].pair;
 
         let token_address = &fixture.tokens[TokenIndex::OUSD].address;
-        std::println!("****  Mock pegkeeper {:?}", fixture.mock_pegkeeper.address.to_string());
-        std::println!("****  Mock treasury {:?}", fixture.mock_treasury.address.to_string());
-        std::println!("****  Borrow token address {:?}", token_address.clone().to_string());
-        std::println!("****  Treasury address for token {:?}", fixture.mock_pegkeeper.get_treasury(&token_address));
-        std::println!("****  Pegkeeper address for Treasury {:?}", fixture.mock_treasury.get_pegkeeper_address());
+        // std::println!("****  Mock pegkeeper {:?}", fixture.mock_pegkeeper.address.to_string());
+        // std::println!("****  Mock treasury {:?}", fixture.mock_treasury.address.to_string());
+        // std::println!("****  Mock receiver {:?}", fixture.mock_receiver.address.to_string());
+        // std::println!("****  Borrow token address {:?}", token_address.clone().to_string());
+        // std::println!("****  Treasury address for token {:?}", fixture.mock_pegkeeper.get_treasury(&token_address));
+        // std::println!("****  Pegkeeper address for Treasury {:?}", fixture.mock_treasury.get_pegkeeper_address());
+        // std::println!("****  Receiver address for Pegkeeper {:?}", fixture.mock_pegkeeper.get_receiver());
 
         fixture.mock_pegkeeper.flash_loan(&token_address, &1000i128);
-        fixture.mock_pegkeeper.flashloan_receive(&fixture.tokens[TokenIndex::OUSD].address, &100i128);
+        std::println!("=====================================FlashLoan Logs Start===========================================");
+        std::println!("{:?}", fixture.env.logs().all().join("\n"));
+        std::println!("=====================================FlashLoan Logs End===========================================");
+        // std::println!("treasury => {:?}", fixture.mock_treasury.env.logs().all());
+        // std::println!("pegkeeper => {:?}", fixture.mock_pegkeeper.env.logs().all());
+        // // fixture.mock_pegkeeper.flashloan_receive(&fixture.tokens[TokenIndex::OUSD].address, &100i128);
         
-        let logs = fixture.env.logs().all();
-        std::println!("****  Logs length {}", logs.len());
-        for log in logs {
-            std::println!("****  log - {:?}", log);
-        }
-        let events = fixture.env.events().all();
-        std::println!("****  Events length {}", fixture.mock_pegkeeper.env.events().all().len());
-        for event in events {
-            let list = event.1;
-            std::println!("****  Event {:?}", event.0);
-            for item in list {
-                std::println!("****  Item {:?}", item);
-            }
-            std::println!("****  Event Lst {:?}", event.2);
-        }
+        // let logs = fixture.env.logs().all();
+        // std::println!("****  Logs length {}", logs.len());
+        // for log in logs {
+        //     std::println!("****  log - {:?}", log);
+        // }
+        // let events = fixture.env.events().all();
+        // // std::println!("**** Events contract address {:?}", fixture.env.current_contract_address());
+        // std::println!("****  Events length {}", fixture.mock_pegkeeper.env.events().all().len());
+        // for event in events {
+        //     let list = event.1;
+        //     std::println!("****  Event {:?}", event.0);
+        //     for item in list {
+        //         std::println!("****  Item {:?}", item);
+        //     }
+        //     std::println!("****  Event Lst {:?}", event.2);
+        // }
 
+        // let env = Env::default();
+        // log!(&env, "Hi you {}", "apple".to_string());
+        // std::println!("{}", env.logs().all().join("\n"));
         // validate backstop deposit
         // assert_eq!(
         //     50_000 * SCALAR_7,
