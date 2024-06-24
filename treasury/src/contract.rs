@@ -1,11 +1,11 @@
 use crate::storage;
 use crate::dependencies::pool::{Client as PoolClient, Request};
 use crate::dependencies::pegkeeper::Client as PegkeeperClient;
-use sep_41_token::StellarAssetClient;
 use soroban_sdk::{contract, contractclient, contractimpl, Address, Env, IntoVal, vec, Vec, Val, Symbol, symbol_short, token, panic_with_error};
 use soroban_sdk::auth::{ContractContext, InvokerContractAuthEntry, SubContractInvocation};
 use crate::errors::TreasuryError;
 use token::Client as TokenClient;
+use sep_41_token::StellarAssetClient;
 use token::StellarAssetClient as TokenAdminClient;
 
 const FLASH_LOAN: Symbol = symbol_short!("FLASHLOAN");

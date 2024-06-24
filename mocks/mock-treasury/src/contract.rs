@@ -1,12 +1,12 @@
-use crate::{storage, token_utility::*};
+use crate::{storage, token_utility::{self, *}};
 use crate::dependencies::{
     pool::{Client as PoolClient, Request},
-    receiver::Client as MockReceiverClient,
 };
 use sep_41_token::StellarAssetClient;
-use soroban_sdk::{contract, contractclient, contractimpl, log, panic_with_error, symbol_short, token, vec, Address, Env, IntoVal, Symbol, Val, Vec};
+use soroban_sdk::{contract, contractclient, contractimpl, log, panic_with_error, symbol_short, token, token::Client as TokenClient, vec, Address, Env, IntoVal, Symbol, Val, Vec};
 use soroban_sdk::auth::{ContractContext, InvokerContractAuthEntry, SubContractInvocation};
 use crate::{errors::MockTreasuryError, balances::*};
+use token::StellarAssetClient as TokenAdminClient;
 #[contract]
 pub struct MockTreasuryContract;
 
@@ -226,21 +226,39 @@ impl MockTreasury for MockTreasuryContract {
         
         log!(&e, "================================= Treasury FlashLoan Function Start ============================");
         // check_amount_current(amount)?; // temporary
+        let pegkeeper: Address = storage::get_pegkeeper(&e);
+        let token: Address = storage::get_token(&e);
+        let token_admin_client = TokenAdminClient::new(&e, &token);
+        let token_client = TokenClient::new(&e, &token);
+        let token_balance_before = token_client.balance(&e.current_contract_address());
+        let token_balance_after;
+        pegkeeper.require_auth();
 
-        let token_client = get_token_client(&e);
+        token_admin_client.mint(&receiver_address, &amount);
 
-        // transfer(&e, &token_client, &receiver_address, &amount); // temporary
-        // let fee = compute_fee(&amount);
-        let fee = 100_i128;
+        let fee = 0_i128;
 
-        MockReceiverClient::new(&e, &receiver_address).execute_operation(&e.current_contract_address(), &token_client.address, &amount, &fee);
+        let mut init_args: Vec<Val> = vec![&e];
+        init_args.push_back(e.current_contract_address().into_val(&e));
+        init_args.push_back(token_client.address.into_val(&e));
+        init_args.push_back(amount.into_val(&e));
+        init_args.push_back(fee.into_val(&e));
+        e.invoke_contract::<Val>(&receiver_address, &symbol_short!("exe_op"), init_args);
+        // MockReceiverClient::new(&e, &receiver_address).execute_operation(&e.current_contract_address(), &token_client.address, &amount, &fee);
+        token_client.transfer_from(&e.current_contract_address(), &receiver_address, &e.current_contract_address(), &(amount + fee));
+        token_balance_after = token_client.balance(&e.current_contract_address());
+        if token_balance_after.clone() < token_balance_before.clone() + fee.clone() + amount.clone() {
+            panic_with_error!(&e, MockTreasuryError::FlashloanNotRepaid);
+        }
 
+        token_client.burn(&e.current_contract_address(), &(token_balance_after.clone() - token_balance_before.clone()));
         log!(&e, "================================= Treasury FlashLoan Function End ============================");
 
         // temporarytry_repay(&e, &token_client, &receiver_address, amount, fee)?; // temporary
 
-        // let topics = (Symbol::new(&e, "flash loan"), receiver_address);
+        // let topics = (Symbol::new(&e, "flash_loan"), receiver_address);
         // e.events().publish(topics, amount);
+        // env.events().publish((symbol_short!("COUNTER"), symbol_short!("increment")), count);
 
         Ok(())
     }

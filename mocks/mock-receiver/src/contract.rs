@@ -19,7 +19,7 @@ pub trait MockReceiver {
     /// * `token` - The Address for the token
     /// * `amount` - The Amount for the flashloan
     /// * `fee` - The Fee for the flashloan
-    fn execute_operation(e: Env, caller: Address, token: Address, amount: i128, fee: i128);
+    fn exe_op(e: Env, caller: Address, token: Address, amount: i128, fee: i128);
 }
 
 #[contractimpl]
@@ -33,11 +33,10 @@ impl MockReceiver for MockReceiverContract {
 
         storage::set_admin(&e, &admin);
     }
-    fn execute_operation(e: Env, caller: Address, token: Address, amount: i128, fee: i128) {
+    fn exe_op(e: Env, caller: Address, token: Address, amount: i128, fee: i128) {
         caller.require_auth();
 
         log!(&e, "================================= Receiveer Function Start ================================");
-        /*
         let token_client = token::Client::new(
             &e,
             &token
@@ -54,7 +53,6 @@ impl MockReceiver for MockReceiverContract {
             &total_amount,
             &(e.ledger().sequence() + 1),
         );
-        */
         log!(&e, "================================= Receiveer Function End ================================");
     }
 }
