@@ -130,12 +130,8 @@ impl MockPegkeeper for MockPegkeeperContract {
 
     fn flash_loan(e: Env, token_address: Address, amount: i128) -> Result<(), MockPegkeeperError> {
         log!(&e, "================================= Pegkeeper FlashLoan Function Start ============================");
-        // storage::extend_instance(&e);
-        log!(&e, "================================= Track 1 ============================");
         let treasury_address = storage::get_treasury(&e, token_address.clone());
-        log!(&e, "================================= Track 2 ============================");
         let receiver_address = storage::get_receiver(&e);
-        log!(&e, "================================= Treasury address ============================");
         let mut init_args: Vec<Val> = vec![&e];
         init_args.push_back(receiver_address.into_val(&e));
         init_args.push_back(amount.into_val(&e));
