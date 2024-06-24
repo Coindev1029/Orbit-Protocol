@@ -1,4 +1,4 @@
-use soroban_sdk::{log, testutils::{Address as _, Logs}, vec as svec, Address, Symbol, Env};
+use soroban_sdk::{log, testutils::{Address as _, Logs, MockAuth, MockAuthInvoke}, vec as svec, Address, Symbol, Env};
 
 use crate::{
     dependencies::pool::ReserveEmissionMetadata,
@@ -133,7 +133,7 @@ pub fn create_fixture_with_data<'a>() -> TestFixture<'a> {
 
 #[cfg(test)]
 mod tests {
-    use soroban_sdk::testutils::{Events, Logs};
+    use soroban_sdk::{testutils::{Events, Logs}, IntoVal};
 
 
     #[test]
@@ -143,21 +143,23 @@ mod tests {
         use super::*;
 
         let fixture = TestFixture::create();
-        // let frodo = fixture.users.get(0).unwrap();
-        // let henk = fixture.users.get(1).unwrap();
-        // let treasury_fixture: &PoolFixture = fixture.pools.get(0).unwrap();
-        //let pair = &fixture.pairs[0].pair;
+        let mock_usdt_token = &fixture.tokens[TokenIndex::MockOusd];
 
-        let token_address = &fixture.tokens[TokenIndex::OUSD].address;
-        // std::println!("****  Mock pegkeeper {:?}", fixture.mock_pegkeeper.address.to_string());
-        // std::println!("****  Mock treasury {:?}", fixture.mock_treasury.address.to_string());
-        // std::println!("****  Mock receiver {:?}", fixture.mock_receiver.address.to_string());
-        // std::println!("****  Borrow token address {:?}", token_address.clone().to_string());
-        // std::println!("****  Treasury address for token {:?}", fixture.mock_pegkeeper.get_treasury(&token_address));
-        // std::println!("****  Pegkeeper address for Treasury {:?}", fixture.mock_treasury.get_pegkeeper_address());
-        // std::println!("****  Receiver address for Pegkeeper {:?}", fixture.mock_pegkeeper.get_receiver());
-
-        fixture.mock_pegkeeper.flash_loan(&token_address, &1000i128);
+        // fixture.mock_treasury
+        // .mock_auths(&[MockAuth {
+        //     address: &fixture.mock_treasury.address,
+        //     invoke: &MockAuthInvoke {
+        //         contract: &fixture.mock_treasury.address,
+        //         fn_name: "mint",
+        //         args: (&mock_usdt_token.address, &fixture.mock_pegkeeper.get_receiver(), 1000i128).into_val(&fixture.env),
+        //         sub_invokes: &[],
+        //     },
+        // }]);
+        let token_balance_before = mock_usdt_token.balance(&fixture.mock_receiver.address);
+        fixture.mock_pegkeeper.flash_loan(&mock_usdt_token.address, &1000i128);
+        let token_balance_before = mock_usdt_token.balance(&fixture.mock_receiver.address);
+        assert_eq!(token_balance_before.clone(), token_balance_before.clone());
+        std::println!("===================== balance{:?} =====================", mock_usdt_token.balance(&fixture.mock_receiver.address));
         std::println!("=====================================FlashLoan Logs Start===========================================");
         std::println!("{:?}", fixture.env.logs().all().join("\n"));
         std::println!("=====================================FlashLoan Logs End===========================================");

@@ -6,12 +6,13 @@ use crate::dependencies::emitter::create_emitter;
 use crate::dependencies::liquidity_pool::{create_lp_pool, LPClient};
 use crate::dependencies::oracle::create_mock_oracle;
 use crate::dependencies::pool::{POOL_WASM, ReserveEmissionsData, PoolDataKey, ReserveEmissionsConfig, PoolClient, PoolConfig, ReserveConfig, ReserveData};
-use crate::dependencies::token::{create_stellar_token};
+use crate::dependencies::token::{create_stellar_token, create_token};
 use crate::dependencies::backstop::BackstopClient;
 use crate::dependencies::emitter::EmitterClient;
 use crate::dependencies::pool_factory::{create_pool_factory, PoolFactoryClient, PoolInitMeta};
 use crate::dependencies::pair::{PAIR_WASM, PairClient};
 use sep_40_oracle::testutils::{Asset, MockPriceOracleClient};
+use soroban_sdk::{testutils::{Address as _, MockAuth, MockAuthInvoke}};
 use sep_41_token::testutils::{MockTokenClient};
 use soroban_sdk::log;
 use soroban_sdk::testutils::{Address as _, BytesN as _, Ledger, LedgerInfo};
@@ -34,6 +35,7 @@ pub enum TokenIndex {
     USDC = 1,
     XLM = 2,
     OUSD = 3,
+    MockOusd = 4
 }
 
 pub struct PoolFixture<'a> {
@@ -188,9 +190,11 @@ impl TestFixture<'_> {
         let (mock_pegkeeper_id, mock_pegkeeper_client) = create_mock_pegkeeper(&e);
         let (mock_receiver_id, mock_receiver_client) = create_mock_receiver(&e);
 
-        mock_treasury_client.initialize(&bombadil, &ousd_id, &blnd_id /* temporary */, &router_id, &blnd_id, &mock_pegkeeper_id);
+        let (mock_ousd_token_id, mock_ousd_token_client) = create_stellar_token(&e, &mock_treasury_id);
+
+        mock_treasury_client.initialize(&bombadil, &mock_ousd_token_id, &blnd_id /* temporary */, &router_id, &blnd_id, &mock_pegkeeper_id);
         mock_pegkeeper_client.initialize(&bombadil, &0_u64);
-        mock_pegkeeper_client.add_treasury(&ousd_id, &mock_treasury_id);
+        mock_pegkeeper_client.add_treasury(&mock_ousd_token_id, &mock_treasury_id);
         mock_pegkeeper_client.set_receiver(&mock_receiver_id);
         mock_receiver_client.initialize(&mock_pegkeeper_id);
 
@@ -219,6 +223,7 @@ impl TestFixture<'_> {
                 usdc_client,
                 xlm_client,
                 ousd_client,
+                mock_ousd_token_client
             ],
             mock_treasury: mock_treasury_client,
             mock_pegkeeper: mock_pegkeeper_client,
