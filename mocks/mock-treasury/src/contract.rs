@@ -98,19 +98,46 @@ pub trait MockTreasury {
 impl MockTreasury for MockTreasuryContract {
 
     fn initialize(e: Env, admin: Address, token: Address, blend_pool: Address, soroswap: Address, collateral_token_address: Address, new_pegkeeper: Address) {
+        log!(&e, "================================= Treasury initialize Function ============================");
         storage::extend_instance(&e);
+        log!(&e, "================================= Treasury Extend Instance ============================");
         if storage::is_init(&e) {
             panic_with_error!(&e, MockTreasuryError::AlreadyInitializedError);
         }
+        
+        log!(&e, "================================= Treasury initialize ============================");
 
         storage::set_admin(&e, &admin);
+
+        log!(&e, "================================= Treasury set_admin ============================");
+
         storage::set_blend(&e, &blend_pool);
+        
+        log!(&e, "================================= Treasury blend_pool ============================");
+
         storage::set_soroswap(&e, &soroswap);
+
+        log!(&e, "================================= Treasury set_soroswap ============================");
+
         storage::set_token(&e, &token);
+
+        log!(&e, "================================= Treasury set_token ============================");
+
         storage::set_collateral_token_address(&e, &collateral_token_address);
+
+        log!(&e, "================================= Treasury set_collateral_token_address ============================");
+
         storage::set_token_supply(&e, &0);
+
+        log!(&e, "================================= Treasury set_token_supply ============================");
+
         storage::set_pegkeeper(&e, &new_pegkeeper);
+
+        log!(&e, "================================= Treasury set_pegkeeper ============================");
+
         storage::set_loan_fee(&e, &0);
+
+        log!(&e, "================================= Treasury set_loan_fee ============================");
     }
 
     fn set_admin(e: Env, new_admin: Address) {

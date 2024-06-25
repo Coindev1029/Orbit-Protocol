@@ -1,8 +1,9 @@
+use soroban_sdk;
 mod pool_contract {
     soroban_sdk::contractimport!(file = "../wasm/pool.wasm");
 }
 
-pub use pool_contract::{Client as PoolClient, ReserveEmissionsData, PoolDataKey, ReserveEmissionsConfig, PoolConfig, ReserveData, ReserveConfig, Request, ReserveEmissionMetadata, WASM as POOL_WASM};
+pub use pool_contract::{Client as PoolClient, ReserveEmissionsData, PoolDataKey, ReserveEmissionsConfig, PoolConfig, ReserveData, ReserveConfig, Request, ReserveEmissionMetadata, Reserve, WASM as POOL_WASM};
 
 #[derive(Clone, PartialEq)]
 #[repr(u32)]
@@ -18,6 +19,7 @@ pub enum RequestType {
     FillInterestAuction = 8,
     DeleteLiquidationAuction = 9,
 }
+
 pub fn default_reserve_metadata() -> ReserveConfig {
     ReserveConfig {
         decimals: 7,
@@ -25,6 +27,7 @@ pub fn default_reserve_metadata() -> ReserveConfig {
         l_factor: 0_7500000,
         util: 0_7500000,
         max_util: 0_9500000,
+        r_base: 0_0100000,
         r_one: 0_0500000,
         r_two: 0_5000000,
         r_three: 1_5000000,

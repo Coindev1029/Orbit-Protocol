@@ -1,9 +1,7 @@
 use soroban_sdk::{testutils::Address as _, Address, Env};
 
 mod pool_factory_contract {
-    soroban_sdk::contractimport!(
-        file = "../wasm/pool_factory.wasm"
-    );
+    soroban_sdk::contractimport!(file = "../wasm/pool_factory.wasm");
 }
 pub use pool_factory_contract::{Client as PoolFactoryClient, WASM as POOL_FACTORY_WASM, PoolInitMeta};
 
