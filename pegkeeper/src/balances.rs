@@ -7,6 +7,6 @@ pub fn get_balance(e: &Env, contract_id: Address) -> i128 {
     token::TokenClient::new(e, &contract_id).balance(&e.current_contract_address())
 }
 
-pub fn transfer_amount(e: &Env, contract_id: Address, to: Address, amount: i128) {
+pub fn _transfer_amount(e: &Env, contract_id: Address, to: Address, amount: i128) {
     token::TokenClient::new(e, &contract_id).transfer(&e.current_contract_address(), &to, &amount);
 }

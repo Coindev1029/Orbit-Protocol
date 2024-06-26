@@ -12,6 +12,7 @@ pub enum DataKey {
     TREASURY(Address), // mapping token address to treasury addres
     BALANCE,
     MAXIMUMDURATION,
+    RECEIVER,
 }
 /// Bump the instance rent for the contract
 pub fn extend_instance(e: &Env) {
@@ -67,7 +68,7 @@ pub fn set_treasury(e: &Env, token_address: Address, treasury_address: &Address)
 
 /// Fetch the current balance
 ///
-pub fn get_balance(e: &Env) -> i128 {
+pub fn _get_balance(e: &Env) -> i128 {
     e.storage()
         .instance()
         .get(&DataKey::BALANCE)
@@ -101,4 +102,23 @@ pub fn set_maximum_duration(e: &Env, maximum_duration: &u64) {
     e.storage()
         .instance()
         .set(&DataKey::MAXIMUMDURATION, maximum_duration);
+}
+
+/// Fetch the address for receiver contract
+///
+pub fn get_receiver(e: &Env) -> Address {
+    e.storage()
+        .instance()
+        .get(&DataKey::RECEIVER)
+        .unwrap_optimized()
+}
+
+/// Set the address for receiver contract
+///
+/// ### Arguments
+/// * `receiver` - The address for receiver contract
+pub fn set_receiver(e: &Env, receiver: &Address) {
+    e.storage()
+        .instance()
+        .set(&DataKey::RECEIVER, receiver);
 }

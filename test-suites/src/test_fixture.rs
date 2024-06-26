@@ -127,7 +127,7 @@ impl TestFixture<'_> {
 
         std::println!("===================================== After Create Lp ===========================================");
         // initialize emitter
-        blnd_client.mint(&emitter_id, &(10_000_000 * SCALAR_7));
+        // blnd_client.mint(&emitter_id, &(10_000_000 * SCALAR_7));
         blnd_client.set_admin(&emitter_id);
         emitter_client.initialize(&blnd_id, &backstop_id, &lp);
 
@@ -234,7 +234,7 @@ impl TestFixture<'_> {
         let fixture = TestFixture {
             env: e,
             admin: admin,
-            users: vec![],
+            users: vec![frodo],
             emitter: emitter_client,
             backstop: backstop_client,
             pool_factory: pool_factory_client,
@@ -261,8 +261,8 @@ impl TestFixture<'_> {
 
     pub fn create_pool(&mut self, name: String, backstop_take_rate: u32, max_positions: u32) {
         std::println!("===================================== Create Pool Function ===========================================");
-        let from = self.tokens[TokenIndex::MockOusd].address.clone();
-        let to = self.tokens[TokenIndex::BLND].address.clone();
+        // let from = self.tokens[TokenIndex::MockOusd].address.clone();
+        // let to = self.tokens[TokenIndex::BLND].address.clone();
         let oracle_id = &self.bridge_oracle;
         
         std::println!("===================================== Create Pool Before ===========================================");
@@ -279,20 +279,21 @@ impl TestFixture<'_> {
         std::println!("===================================== Create Pool After ===========================================");
 
         let ousd_id = &self.tokens[TokenIndex::MockOusd];
+        let mock_treasury_client = &self.mock_treasury;
 
-        let treasury_id = self.treasury_factory.deploy(
-            &BytesN::<32>::random(&self.env),
-            &from,
-            &FactoryAsset::Stellar(to.clone()),
-            &pool_id
-        );
+        // let treasury_id = self.treasury_factory.deploy(
+        //     &BytesN::<32>::random(&self.env),
+        //     &from,
+        //     &FactoryAsset::Stellar(to.clone()),
+        //     &pool_id
+        // );
 
-        std::println!("===================================== Treasury Factory Deploy After ===========================================");
+        // std::println!("===================================== Treasury Factory Deploy After ===========================================");
 
-        ousd_id.set_admin(&treasury_id);
+        ousd_id.set_admin(&mock_treasury_client.address);
         self.pools.push(PoolFixture {
             pool: PoolClient::new(&self.env, &pool_id),
-            treasury: TreasuryClient::new(&self.env, &treasury_id),
+            treasury: TreasuryClient::new(&self.env, &mock_treasury_client.address),
             reserves: HashMap::new(),
         });
 
@@ -314,14 +315,19 @@ impl TestFixture<'_> {
         asset_index: TokenIndex,
         reserve_config: &ReserveConfig,
     ) {
+        std::println!("===================================== create_pool_reserve function ===========================================");
         let mut pool_fixture = self.pools.remove(pool_index);
+        std::println!("===================================== remove pool index ===========================================");
         let token = &self.tokens[asset_index];
         pool_fixture
             .pool
             .queue_set_reserve(&token.address, reserve_config);
+        std::println!("===================================== que set reserve ===========================================");
         let index = pool_fixture.pool.set_reserve(&token.address);
         pool_fixture.reserves.insert(asset_index, index);
+        std::println!("===================================== insert reserve asset ===========================================");
         self.pools.insert(pool_index, pool_fixture);
+        std::println!("===================================== insert pool index, pool fixture ===========================================");
     }
 
     /********** Contract Data Helpers **********/

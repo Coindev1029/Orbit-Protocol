@@ -15,26 +15,26 @@ pub fn create_fixture_with_data<'a>() -> TestFixture<'a> {
     std::println!("===================================== After Create Function ===========================================");
 
     // mint whale tokens
-    let frodo = Address::generate(&fixture.env);
+    let frodo = fixture.users[0].clone();
     fixture.users.push(frodo.clone());
-    fixture.tokens[TokenIndex::XLM].mint(&frodo, &(10_000_000_000 * SCALAR_7)); // 10B XLM
+    fixture.tokens[TokenIndex::XLM].mint(&frodo, &(1_000_000 * SCALAR_7)); // 10B XLM
 
     std::println!("===================================== After XLM Mint ===========================================");
 
     // mint LP tokens with whale
-    fixture.tokens[TokenIndex::BLND].mint(&frodo, &(500_0010_000_0000_0000 * SCALAR_7));
+    fixture.tokens[TokenIndex::BLND].mint(&frodo, &(70_000_000 * SCALAR_7));
     // fixture.tokens[TokenIndex::BLND].approve(&frodo, &fixture.lp.address, &i128::MAX, &99999);
-    fixture.tokens[TokenIndex::MockOusd].mint(&frodo, &(12_5010_000_0000_0000 * SCALAR_7));
+    fixture.tokens[TokenIndex::MockOusd].mint(&frodo, &(2_600_000 * SCALAR_7));
     // fixture.tokens[TokenIndex::USDC].approve(&frodo, &fixture.lp.address, &i128::MAX, &99999);
 
     std::println!("===================================== After Blend, MockOusd Mint ===========================================");
 
     fixture.lp.join_pool(
-        &(500_000_0000 * SCALAR_7),
+        &(10_000_000 * SCALAR_7),
         &svec![
             &fixture.env,
-            500_0010_000_0000_0000 * SCALAR_7,
-            12_5010_000_0000_0000 * SCALAR_7,
+            110_000_000 * SCALAR_7,
+            2_600_000 * SCALAR_7,
         ],
         &frodo,
     );
@@ -99,18 +99,37 @@ pub fn create_fixture_with_data<'a>() -> TestFixture<'a> {
         &fixture.env,
         Request {
             request_type: RequestType::SupplyCollateral as u32,
-            address: fixture.tokens[TokenIndex::MockOusd].address.clone(),
-            amount: 10_000 * 10i128.pow(6),
+            address: fixture.tokens[TokenIndex::XLM].address.clone(),
+            amount: 100_000 * SCALAR_7,
         },
+        // Request {
+        //     request_type: RequestType::Borrow as u32,
+        //     address: fixture.tokens[TokenIndex::XLM].address.clone(),
+        //     amount: 65_000 * SCALAR_7,
+        // },
+    ];
+
+    std::println!("=====================================Before Submit===========================================");
+    
+    std::println!("=====================================Address {:?}===========================================", &pool_fixture.pool.address);
+    
+    pool_fixture.pool.submit(&frodo, &frodo, &frodo, &requests);
+
+    std::println!("=====================================Request Test===========================================");
+    // supply and borrow MockOusd for 80% utilization (close to target)
+    let requests: SVec<Request> = svec![
+        &fixture.env,
         Request {
             request_type: RequestType::Borrow as u32,
-            address: fixture.tokens[TokenIndex::MockOusd].address.clone(),
-            amount: 8_000 * 10i128.pow(6),
+            address: fixture.tokens[TokenIndex::XLM].address.clone(),
+            amount: 65_000 * SCALAR_7,
         },
     ];
 
     std::println!("=====================================Before Submit===========================================");
-
+    
+    std::println!("=====================================Address {:?}===========================================", &pool_fixture.pool.address);
+    
     pool_fixture.pool.submit(&frodo, &frodo, &frodo, &requests);
 
     std::println!("=====================================After Submit===========================================");
@@ -120,14 +139,14 @@ pub fn create_fixture_with_data<'a>() -> TestFixture<'a> {
         &fixture.env,
         Request {
             request_type: RequestType::SupplyCollateral as u32,
-            address: fixture.tokens[TokenIndex::XLM].address.clone(),
-            amount: 100_000 * SCALAR_7,
+            address: fixture.tokens[TokenIndex::MockOusd].address.clone(),
+            amount: 10 * 10i128.pow(9),
         },
-        Request {
-            request_type: RequestType::Borrow as u32,
-            address: fixture.tokens[TokenIndex::XLM].address.clone(),
-            amount: 65_000 * SCALAR_7,
-        },
+        // Request {
+        //     request_type: RequestType::Borrow as u32,
+        //     address: fixture.tokens[TokenIndex::MockOusd].address.clone(),
+        //     amount: 5 * 10i128.pow(9),
+        // },
     ];
     pool_fixture.pool.submit(&frodo, &frodo, &frodo, &requests);
 
