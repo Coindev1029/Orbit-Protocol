@@ -4,23 +4,23 @@ use std::ops::Index;
 use crate::dependencies::backstop::create_backstop;
 use crate::dependencies::emitter::create_emitter;
 use crate::dependencies::liquidity_pool::{create_lp_pool, LPClient};
-use crate::dependencies::pool::POOL_WASM;
 use crate::dependencies::oracle::create_mock_oracle;
+use crate::dependencies::pool::POOL_WASM;
+use crate::dependencies::pool_factory::create_pool_factory;
+use crate::dependencies::token::{create_stellar_token, create_token};
+use crate::dependencies::backstop::BackstopClient;
+use crate::dependencies::emitter::EmitterClient;
 use crate::dependencies::pool::{
     PoolClient, PoolConfig, PoolDataKey, ReserveConfig, ReserveData, ReserveEmissionsConfig,
     ReserveEmissionsData,
 };
-use crate::dependencies::token::{create_stellar_token, create_token};
-use crate::dependencies::backstop::BackstopClient;
-use crate::dependencies::emitter::EmitterClient;
-use crate::dependencies::pool_factory::{create_pool_factory, PoolFactoryClient, PoolInitMeta};
-use crate::dependencies::pair::{PAIR_WASM, PairClient};
+use crate::dependencies::pool_factory::{PoolFactoryClient, PoolInitMeta};
 use sep_40_oracle::testutils::{Asset, MockPriceOracleClient};
-use soroban_sdk::{testutils::{Address as _, MockAuth, MockAuthInvoke}};
-use sep_41_token::testutils::{MockTokenClient};
-use soroban_sdk::log;
+use sep_41_token::testutils::MockTokenClient;
 use soroban_sdk::testutils::{Address as _, BytesN as _, Ledger, LedgerInfo};
-use soroban_sdk::{vec as svec, Address, BytesN, Env, String, Map, Symbol, testutils::Logs};
+use soroban_sdk::{vec as svec, Address, BytesN, Env, String, Map, Symbol};
+
+use crate::dependencies::pair::{PAIR_WASM, PairClient};
 use crate::dependencies::treasury::{TreasuryClient, TREASURY_WASM};
 use crate::dependencies::bridge_oracle::{BridgeOracleClient, create_bridge_oracle};
 use crate::dependencies::pair_factory::{create_pair_factory, PairFactoryClient};
@@ -65,10 +65,11 @@ pub struct TestFixture<'a> {
     pub emitter: EmitterClient<'a>,
     pub backstop: BackstopClient<'a>,
     pub pool_factory: PoolFactoryClient<'a>,
+    pub oracle: MockPriceOracleClient<'a>,
     pub treasury_factory: TreasuryFactoryClient<'a>,
     pub pair_factory: PairFactoryClient<'a>,
     pub router: RouterClient<'a>,
-    pub oracle: MockPriceOracleClient<'a>,
+    
     pub bridge_oracle: BridgeOracleClient<'a>,
     pub lp: LPClient<'a>,
     pub pools: Vec<PoolFixture<'a>>,

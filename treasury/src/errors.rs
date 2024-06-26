@@ -7,13 +7,14 @@ use soroban_sdk::contracterror;
 /// dependencies error reporting. Treasury specific errors start at 2000.
 pub enum TreasuryError {
     // Common Errors
-    InternalError = 1,
-    AlreadyInitializedError = 3,
-    UnauthorizedError = 4,
-    NegativeAmountError = 8,
-    BalanceError = 10,
-    OverflowError = 12,
-    FlashloanFailedError = 11,
-    SupplyError = 2000,
-
+    InternalError = 501,
+    AlreadyInitializedError = 502,
+    UnauthorizedError = 503,
+    NegativeAmountError = 504,
+    BalanceError = 505,
+    InvalidAmount = 506,
+    OverflowError = 507,
+    FlashloanFailedError = 508,
+    SupplyError = 509,
+    FlashloanNotRepaid = 510
 }
