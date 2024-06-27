@@ -107,7 +107,7 @@ impl TestFixture<'_> {
         let (usdc_id, usdc_client) = create_stellar_token(&e, &admin);
         let (xlm_id, xlm_client) = create_stellar_token(&e, &admin);
         let (stable_id, stable_client) = create_token(&e, &admin, 6, "STABLE");
-        let (ousd_id, ousd_client) = create_stellar_token(&e, &admin);
+        let (ousd_id, ousd_client) = create_token(&e, &admin, 6, "OUSD");
 
         // deploy Blend Protocol dependencies
         let (backstop_id, backstop_client) = create_backstop(&e);
