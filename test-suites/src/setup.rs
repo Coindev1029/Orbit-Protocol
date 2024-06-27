@@ -102,11 +102,11 @@ pub fn create_fixture_with_data<'a>() -> TestFixture<'a> {
             address: fixture.tokens[TokenIndex::XLM].address.clone(),
             amount: 100_000 * SCALAR_7,
         },
-        // Request {
-        //     request_type: RequestType::Borrow as u32,
-        //     address: fixture.tokens[TokenIndex::XLM].address.clone(),
-        //     amount: 65_000 * SCALAR_7,
-        // },
+        Request {
+            request_type: RequestType::Borrow as u32,
+            address: fixture.tokens[TokenIndex::XLM].address.clone(),
+            amount: 65_000 * SCALAR_7,
+        },
     ];
 
     std::println!("=====================================Before Submit===========================================");

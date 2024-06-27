@@ -66,15 +66,14 @@ pub struct TestFixture<'a> {
     pub backstop: BackstopClient<'a>,
     pub pool_factory: PoolFactoryClient<'a>,
     pub oracle: MockPriceOracleClient<'a>,
-    pub treasury_factory: TreasuryFactoryClient<'a>,
-    pub pair_factory: PairFactoryClient<'a>,
-    pub router: RouterClient<'a>,
-    
-    pub bridge_oracle: BridgeOracleClient<'a>,
     pub lp: LPClient<'a>,
     pub pools: Vec<PoolFixture<'a>>,
-    pub pairs: Vec<PairFixture<'a>>,
     pub tokens: Vec<MockTokenClient<'a>>,
+    pub pair_factory: PairFactoryClient<'a>,
+    pub pairs: Vec<PairFixture<'a>>,   
+    pub router: RouterClient<'a>,
+    pub bridge_oracle: BridgeOracleClient<'a>,        
+    pub treasury_factory: TreasuryFactoryClient<'a>,    
     pub mock_treasury: MockTreasuryClient<'a>,
     pub mock_pegkeeper: MockPegkeeperClient<'a>,
     pub mock_receiver: MockReceiverClient<'a>
@@ -94,6 +93,9 @@ impl TestFixture<'_> {
         e.mock_all_auths();
         e.budget().reset_unlimited();
 
+        let admin = Address::generate(&e);
+        let frodo = Address::generate(&e);
+
         e.ledger().set(LedgerInfo {
             timestamp: 1441065600, // Sept 1st, 2015 (backstop epoch)
             protocol_version: 20,
@@ -105,15 +107,9 @@ impl TestFixture<'_> {
             max_entry_ttl: 9999999,
         });
 
-        let admin = Address::generate(&e);
-        let frodo = Address::generate(&e);
-
-        let (mock_treasury_id, mock_treasury_client) = create_mock_treasury(&e);
-        let (mock_pegkeeper_id, mock_pegkeeper_client) = create_mock_pegkeeper(&e);
-        let (mock_receiver_id, mock_receiver_client) = create_mock_receiver(&e);
-
         let (blnd_id, blnd_client) = create_stellar_token(&e, &admin);
-        let (mock_ousd_token_id, mock_ousd_token_client) = create_stellar_token(&e, &mock_treasury_id);
+        let (usdc_id, usdc_client) = create_stellar_token(&e, &admin);
+        let (mock_ousd_token_id, mock_ousd_token_client) = create_stellar_token(&e, &admin);
         let (xlm_id, xlm_client) = create_stellar_token(&e, &admin);
 
         // deploy Blend Protocol dependencies
@@ -192,6 +188,10 @@ impl TestFixture<'_> {
         ]);
 
         std::println!("===================================== After Oracle Set Price ===========================================");
+
+        let (mock_treasury_id, mock_treasury_client) = create_mock_treasury(&e);
+        let (mock_pegkeeper_id, mock_pegkeeper_client) = create_mock_pegkeeper(&e);
+        let (mock_receiver_id, mock_receiver_client) = create_mock_receiver(&e);
 
         // deploy Orbit dependencies
         let (treasury_factory_id, treasury_factory_client) = create_treasury_factory(&e);
