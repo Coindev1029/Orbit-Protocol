@@ -1,9 +1,9 @@
 use soroban_sdk::{testutils::Address as _, Address, Env};
 
 mod mock_treasury_contract {
-    soroban_sdk::contractimport!(file = "../wasm/mock_treasury.wasm");
+    soroban_sdk::contractimport!(file = "../wasm/orbit8/mock_treasury.wasm");
 }
-pub use mock_treasury_contract::{Client as MockTreasuryClient, WASM as MOCK_TREASURY_WASM};
+pub use mock_treasury_contract::{Client as MockTreasuryClient, WASM as MOCK_TREASURY_WASM, Asset as MockAsset};
 
 pub fn create_mock_treasury<'a>(e: &Env) -> (Address, MockTreasuryClient<'a>) {
     let contract_id = Address::generate(e);

@@ -1,7 +1,7 @@
 use soroban_sdk::{testutils::Address as _, Address, Env};
 
 mod mock_pegkeeper_contract {
-    soroban_sdk::contractimport!(file = "../wasm/mock_pegkeeper.wasm");
+    soroban_sdk::contractimport!(file = "../wasm/orbit8/mock_pegkeeper.wasm");
 }
 pub use mock_pegkeeper_contract::{Client as MockPegkeeperClient, WASM as MOCK_PEGKEEPER_WASM};
 

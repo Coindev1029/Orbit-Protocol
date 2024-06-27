@@ -1,10 +1,9 @@
+use sep_40_oracle::Asset;
 use crate::storage;
 use crate::dependencies::pool::{Client as PoolClient, Request};
 use soroban_sdk::{contract, contractclient, contractimpl, log, panic_with_error, symbol_short, token, vec, Address, Env, IntoVal, Symbol, Val, Vec};
 use soroban_sdk::auth::{ContractContext, InvokerContractAuthEntry, SubContractInvocation};
 use crate::errors::MockTreasuryError;
-use crate::dependencies::bridge_oracle::{Client as BridgeOracleClient, Asset};
-use crate::dependencies::pegkeeper::Client as PegkeeperClient;
 use token::Client as TokenClient;
 use sep_41_token::StellarAssetClient;
 use token::StellarAssetClient as TokenAdminClient;
@@ -79,7 +78,13 @@ impl MockTreasury for MockTreasuryContract {
 
         let bridge_oracle = storage::get_bridge_oracle(&e);
         let token_asset = Asset::Stellar(token.clone());
-        BridgeOracleClient::new(&e, &bridge_oracle).add_asset(&token_asset, &asset);
+        let add_asset_args = vec![
+            &e,
+            token_asset.into_val(&e),
+            asset.into_val(&e),
+        ];
+        e.invoke_contract::<Val>(&bridge_oracle, &Symbol::new(&e, "add_asset"), add_asset_args);
+
 
         storage::set_blend_pool(&e, &token, &blend_pool);
     }
@@ -138,7 +143,15 @@ impl MockTreasury for MockTreasuryContract {
         // Mint tokens to pegkeeper
         TokenAdminClient::new(&e, &token).mint(&pegkeeper, &amount);
         // Execute operation
-        PegkeeperClient::new(&e, &pegkeeper).exe_op(&caller, &token, &blend_pool, &liquidation, &amount);
+        let exe_op_args = vec![
+            &e,
+            caller.into_val(&e),
+            token.into_val(&e),
+            blend_pool.into_val(&e),
+            liquidation.into_val(&e),
+            amount.into_val(&e),
+        ];
+        e.invoke_contract::<Val>(&pegkeeper, &Symbol::new(&e, "exe_op"), exe_op_args);
         log!(&e, "================================= Mock: Treasury FlashLoan Function End ============================");
     }
 }

@@ -10,7 +10,7 @@ use test_suites::{
 #[test]
 fn test_mock_pegkeeper_flashloan() {
 
-    let fixture = create_fixture_with_data();
+    let fixture = create_fixture_with_data(false);
     // let frodo: &Address = fixture.users.get(0).unwrap();
     // let pool_fixture: &PoolFixture = fixture.pools.get(0).unwrap();
 

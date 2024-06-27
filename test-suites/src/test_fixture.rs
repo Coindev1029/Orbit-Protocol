@@ -27,7 +27,7 @@ use crate::dependencies::pair_factory::{create_pair_factory, PairFactoryClient};
 use crate::dependencies::router::{create_router, RouterClient};
 use crate::dependencies::mock_treasury::{create_mock_treasury, MockTreasuryClient};
 use crate::dependencies::mock_pegkeeper::{create_mock_pegkeeper, MockPegkeeperClient};
-use crate::dependencies::pegkeeper::create_pegkeeper;
+use crate::dependencies::pegkeeper::{create_pegkeeper, PegkeeperClient};
 
 pub const SCALAR_7: i128 = 1_000_0000;
 pub const SCALAR_9: i128 = 1_000_000_000;
@@ -43,12 +43,6 @@ pub enum TokenIndex {
 pub struct PoolFixture<'a> {
     pub pool: PoolClient<'a>,
     pub reserves: HashMap<TokenIndex, u32>,
-}
-
-pub struct TreasuryFixture<'a> {
-    pub treasury: TreasuryClient<'a>,
-    pub bridge_oracle: BridgeOracleClient<'a>,
-    pub pegkeeper: MockPegkeeperClient<'a>,
 }
 
 impl<'a> Index<TokenIndex> for Vec<MockTokenClient<'a>> {
@@ -73,7 +67,11 @@ pub struct TestFixture<'a> {
     pub pair_factory: PairFactoryClient<'a>,
     pub pairs: Vec<PairClient<'a>>,
     pub router: RouterClient<'a>,
-    pub treasury: TreasuryFixture<'a>,
+    pub bridge_oracle: BridgeOracleClient<'a>,
+    pub treasury: TreasuryClient<'a>,
+    pub mock_treasury: MockTreasuryClient<'a>,
+    pub pegkeeper: PegkeeperClient<'a>,
+    pub mock_pegkeeper: MockPegkeeperClient<'a>,
 }
 
 impl TestFixture<'_> {
@@ -146,7 +144,7 @@ impl TestFixture<'_> {
         backstop_client.drop();
 
         // Initialize oracle
-        let (_, mock_oracle_client) = create_mock_oracle(&e);
+        let (mock_oracle_id, mock_oracle_client) = create_mock_oracle(&e);
         mock_oracle_client.set_data(
             &admin,
             &Asset::Other(Symbol::new(&e, "USD")),
@@ -164,44 +162,35 @@ impl TestFixture<'_> {
             0_1000000,    // xlm
         ]);
 
-        // Deploy orbit dependencies
-        let (bridge_oracle_id, bridge_oracle_client) = create_bridge_oracle(&e);
-        let (treasury_id, treasury_client);
-        let (pegkeeper_id, pegkeeper_client);
-        if (mock) {
-            (treasury_id, treasury_client) = create_mock_treasury(&e);
-            (pegkeeper_id, pegkeeper_client) = create_mock_pegkeeper(&e);
-        } else {
-            (treasury_id, treasury_client) = create_treasury(&e);
-            (pegkeeper_id, pegkeeper_client) = create_pegkeeper(&e);
-        }
-
-        pegkeeper_client.initialize(&admin);
-
-
-
-
-        let (mock_treasury_id, mock_treasury_client) = create_mock_treasury(&e);
-        let (mock_pegkeeper_id, mock_pegkeeper_client) = create_mock_pegkeeper(&e);
-
-        // deploy Orbit dependencies
-        let (bridge_oracle_id, bridge_oracle_client) = create_bridge_oracle(&e);
-        // bridge_oracle_client.initialize(&treasury_factory_id, &bridge_oracle_id);
-
         // Initialize soroswap
-
         let (pair_factory_id, pair_factory_client) = create_pair_factory(&e);
         let pair_hash = e.deployer().upload_contract_wasm(PAIR_WASM);
         let (router_id, router_client) = create_router(&e);
         pair_factory_client.initialize(&admin, &pair_hash);
         router_client.initialize(&pair_factory_id);
 
-        // initialize oracle
-        mock_treasury_client.initialize(&admin, &ousd_id, &blnd_id, &router_id, &ousd_id, &mock_pegkeeper_id);
+        // Deploy orbit8 dependencies
+        let (bridge_oracle_id, bridge_oracle_client) = create_bridge_oracle(&e);
+        let (treasury_id, treasury_client) = create_treasury(&e);
+        let (mock_treasury_id, mock_treasury_client) = create_mock_treasury(&e);
+        let (pegkeeper_id, pegkeeper_client) = create_pegkeeper(&e);
+        let (mock_pegkeeper_id, mock_pegkeeper_client) = create_mock_pegkeeper(&e);
 
-        ousd_client.set_admin(&mock_treasury_id);
+        // init bridge oracle
+        if(mock) {
+            bridge_oracle_client.initialize(&mock_treasury_id, &mock_oracle_id);
+        } else {
+            bridge_oracle_client.initialize(&treasury_id, &mock_oracle_id);
+        }
 
-        mock_pegkeeper_client.initialize(&admin);
+        // init pegkeeper
+        pegkeeper_client.initialize(&admin, &router_id);
+        mock_pegkeeper_client.initialize(&admin, &router_id);
+
+        // init treasury
+        treasury_client.initialize(&admin, &bridge_oracle_id, &pegkeeper_id);
+        mock_treasury_client.initialize(&admin, &bridge_oracle_id, &mock_pegkeeper_id);
+
 
         let fixture = TestFixture {
             env: e,
@@ -220,12 +209,12 @@ impl TestFixture<'_> {
             tokens: vec![
                 blnd_client,
                 usdc_client,
-                eth_client,
                 xlm_client,
-                stable_client,
                 ousd_client
             ],
+            treasury: treasury_client,
             mock_treasury: mock_treasury_client,
+            pegkeeper: pegkeeper_client,
             mock_pegkeeper: mock_pegkeeper_client,
         };
         fixture.jump(7 * 24 * 60 * 60);
@@ -237,7 +226,7 @@ impl TestFixture<'_> {
             &self.admin,
             &name,
             &BytesN::<32>::random(&self.env),
-            &self.oracle.address.clone(),
+            &self.bridge_oracle.address.clone(),
             &backstop_take_rate,
             &max_positions,
         );
@@ -252,9 +241,7 @@ impl TestFixture<'_> {
         let token_a_id = &self.tokens[token_a].address;
         let token_b_id = &self.tokens[token_b].address;
         let pair_id = self.pair_factory.create_pair(token_a_id, token_b_id);
-        self.pairs.push(PairFixture {
-            pair: PairClient::new(&self.env, &pair_id),
-        });
+        self.pairs.push(PairClient::new(&self.env, &pair_id));
     }
 
     pub fn create_pool_reserve(

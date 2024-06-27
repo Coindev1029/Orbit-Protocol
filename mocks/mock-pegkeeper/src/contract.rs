@@ -10,7 +10,7 @@ pub trait MockPegkeeper {
     /// ### Arguments
     /// * `admin` - The Address for the admin
     /// * `maximum_duration` - The maximum_duration for swap transaction
-    fn initialize(e: Env, admin: Address);
+    fn initialize(e: Env, admin: Address, router: Address);
 
     /// Execute operation
     ///
@@ -24,13 +24,14 @@ pub trait MockPegkeeper {
 
 #[contractimpl]
 impl MockPegkeeper for MockPegkeeperContract {
-    fn initialize(e: Env, admin: Address) {
+    fn initialize(e: Env, admin: Address, router: Address) {
         storage::extend_instance(&e);
 
         if storage::is_init(&e) {
             panic_with_error!(&e, MockPegkeeperError::AlreadyInitializedError);
         }
 
+        storage::set_router(&e, &router);
         storage::set_admin(&e, &admin);
     }
     fn exe_op(e: Env, caller: Address, token: Address, blend_pool: Address, liquidation: Address, amount: i128) {
