@@ -21,12 +21,13 @@ use soroban_sdk::testutils::{Address as _, BytesN as _, Ledger, LedgerInfo};
 use soroban_sdk::{vec as svec, Address, BytesN, Env, String, Map, Symbol};
 
 use crate::dependencies::pair::{PAIR_WASM, PairClient};
-use crate::dependencies::treasury::{TreasuryClient, TREASURY_WASM};
+use crate::dependencies::treasury::{TreasuryClient, TREASURY_WASM, create_treasury};
 use crate::dependencies::bridge_oracle::{BridgeOracleClient, create_bridge_oracle};
 use crate::dependencies::pair_factory::{create_pair_factory, PairFactoryClient};
 use crate::dependencies::router::{create_router, RouterClient};
 use crate::dependencies::mock_treasury::{create_mock_treasury, MockTreasuryClient};
 use crate::dependencies::mock_pegkeeper::{create_mock_pegkeeper, MockPegkeeperClient};
+use crate::dependencies::pegkeeper::create_pegkeeper;
 
 pub const SCALAR_7: i128 = 1_000_0000;
 pub const SCALAR_9: i128 = 1_000_000_000;
@@ -35,10 +36,8 @@ pub const SCALAR_9: i128 = 1_000_000_000;
 pub enum TokenIndex {
     BLND = 0,
     USDC = 1,
-    WETH = 2,
-    XLM = 3,
-    STABLE = 4,
-    OUSD = 5,
+    XLM = 2,
+    OUSD = 3,
 }
 
 pub struct PoolFixture<'a> {
@@ -46,8 +45,10 @@ pub struct PoolFixture<'a> {
     pub reserves: HashMap<TokenIndex, u32>,
 }
 
-pub struct PairFixture<'a> {
-    pub pair: PairClient<'a>,
+pub struct TreasuryFixture<'a> {
+    pub treasury: TreasuryClient<'a>,
+    pub bridge_oracle: BridgeOracleClient<'a>,
+    pub pegkeeper: MockPegkeeperClient<'a>,
 }
 
 impl<'a> Index<TokenIndex> for Vec<MockTokenClient<'a>> {
@@ -70,11 +71,9 @@ pub struct TestFixture<'a> {
     pub pools: Vec<PoolFixture<'a>>,
     pub tokens: Vec<MockTokenClient<'a>>,
     pub pair_factory: PairFactoryClient<'a>,
-    pub pairs: Vec<PairFixture<'a>>,   
+    pub pairs: Vec<PairClient<'a>>,
     pub router: RouterClient<'a>,
-    pub bridge_oracle: BridgeOracleClient<'a>,          
-    pub mock_treasury: MockTreasuryClient<'a>,
-    pub mock_pegkeeper: MockPegkeeperClient<'a>,
+    pub treasury: TreasuryFixture<'a>,
 }
 
 impl TestFixture<'_> {
@@ -83,7 +82,7 @@ impl TestFixture<'_> {
     /// Deploys BLND (0), USDC (1), wETH (2), XLM (3), and STABLE (4) test tokens, alongside all required
     /// Blend Protocol dependencies, including a BLND-USDC LP.
     
-    pub fn create<'a>() -> TestFixture<'a> {
+    pub fn create<'a>(mock: bool) -> TestFixture<'a> {
         let e = Env::default();
         e.mock_all_auths();
         e.budget().reset_unlimited();
@@ -103,10 +102,8 @@ impl TestFixture<'_> {
         });
 
         let (blnd_id, blnd_client) = create_stellar_token(&e, &admin);
-        let (eth_id, eth_client) = create_token(&e, &admin, 9, "wETH");
         let (usdc_id, usdc_client) = create_stellar_token(&e, &admin);
         let (xlm_id, xlm_client) = create_stellar_token(&e, &admin);
-        let (stable_id, stable_client) = create_token(&e, &admin, 6, "STABLE");
         let (ousd_id, ousd_client) = create_stellar_token(&e, &admin);
 
         // deploy Blend Protocol dependencies
@@ -116,8 +113,8 @@ impl TestFixture<'_> {
 
         // deploy external dependencies
         let (lp, lp_client) = create_lp_pool(&e, &admin, &blnd_id, &usdc_id.clone());
+
         // initialize emitter
-        // blnd_client.mint(&emitter_id, &(10_000_000 * SCALAR_7));
         blnd_client.set_admin(&emitter_id);
         emitter_client.initialize(&blnd_id, &backstop_id, &lp);
 
@@ -148,31 +145,41 @@ impl TestFixture<'_> {
         // drop tokens to bombadil
         backstop_client.drop();
 
+        // Initialize oracle
         let (_, mock_oracle_client) = create_mock_oracle(&e);
-
         mock_oracle_client.set_data(
             &admin,
             &Asset::Other(Symbol::new(&e, "USD")),
             &svec![
                 &e,
-                Asset::Stellar(eth_id.clone()),
                 Asset::Stellar(usdc_id),
                 Asset::Stellar(xlm_id.clone()),
-                Asset::Stellar(stable_id.clone()),
-                Asset::Stellar(ousd_id.clone())
             ],
             &7,
             &300,
         );
-
         mock_oracle_client.set_price_stable(&svec![
             &e,
-            2000_0000000, // eth
             1_0000000,    // usdc
             0_1000000,    // xlm
-            1_0000000,    // stable
-            1_0000000,    // ousd
         ]);
+
+        // Deploy orbit dependencies
+        let (bridge_oracle_id, bridge_oracle_client) = create_bridge_oracle(&e);
+        let (treasury_id, treasury_client);
+        let (pegkeeper_id, pegkeeper_client);
+        if (mock) {
+            (treasury_id, treasury_client) = create_mock_treasury(&e);
+            (pegkeeper_id, pegkeeper_client) = create_mock_pegkeeper(&e);
+        } else {
+            (treasury_id, treasury_client) = create_treasury(&e);
+            (pegkeeper_id, pegkeeper_client) = create_pegkeeper(&e);
+        }
+
+        pegkeeper_client.initialize(&admin);
+
+
+
 
         let (mock_treasury_id, mock_treasury_client) = create_mock_treasury(&e);
         let (mock_pegkeeper_id, mock_pegkeeper_client) = create_mock_pegkeeper(&e);

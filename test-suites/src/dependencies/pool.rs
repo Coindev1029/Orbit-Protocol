@@ -1,6 +1,6 @@
 use soroban_sdk;
 mod pool_contract {
-    soroban_sdk::contractimport!(file = "../wasm/pool.wasm");
+    soroban_sdk::contractimport!(file = "../wasm/blend/pool.wasm");
 }
 
 pub use pool_contract::{Client as PoolClient, ReserveEmissionsData, PoolDataKey, ReserveEmissionsConfig, PoolConfig, ReserveData, ReserveConfig, Request, ReserveEmissionMetadata, Positions, Reserve, WASM as POOL_WASM};
