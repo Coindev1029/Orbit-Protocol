@@ -28,7 +28,7 @@ use crate::dependencies::router::{create_router, RouterClient};
 use crate::dependencies::treasury_factory::{FactoryAsset, create_treasury_factory, TreasuryFactoryClient, TreasuryInitMeta};
 use crate::dependencies::mock_treasury::{create_mock_treasury, MockTreasuryClient};
 use crate::dependencies::mock_pegkeeper::{create_mock_pegkeeper, MockPegkeeperClient};
-use crate::dependencies::mock_receiver::{create_mock_receiver, MockReceiverClient};
+use crate::dependencies::mock_receiver::{create_mock_receiver, MockPegkeeperClient};
 
 pub const SCALAR_7: i128 = 1_000_0000;
 pub const SCALAR_9: i128 = 1_000_000_000;
@@ -76,7 +76,7 @@ pub struct TestFixture<'a> {
     pub treasury_factory: TreasuryFactoryClient<'a>,    
     pub mock_treasury: MockTreasuryClient<'a>,
     pub mock_pegkeeper: MockPegkeeperClient<'a>,
-    pub mock_receiver: MockReceiverClient<'a>
+    pub mock_receiver: MockPegkeeperClient<'a>
 }
 
 impl TestFixture<'_> {

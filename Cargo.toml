@@ -7,7 +7,6 @@ members = [
     "test-suites",
     "bridge-oracle",
     "mocks/mock-pegkeeper",
-    "mocks/mock-treasury",
     "mocks/mock-receiver"]
 
 [profile.release-with-logs]

@@ -248,7 +248,7 @@ impl MockTreasury for MockTreasuryContract {
         //e.events().publish(Symbol::new(&e, "decrease_supply"), admin);
     }
 
-    fn fl_loan(e: Env, receiver_address: Address, amount: i128) -> Result<(), MockTreasuryError> {
+    fn fl_loan(e: Env, amount: i128) -> Result<(), MockTreasuryError> {
         storage::extend_instance(&e);
         
         log!(&e, "================================= Treasury FlashLoan Function Start ============================");
@@ -259,9 +259,8 @@ impl MockTreasury for MockTreasuryContract {
         let token_client = TokenClient::new(&e, &token);
         let token_balance_before = token_client.balance(&e.current_contract_address());
         let token_balance_after;
-        pegkeeper.require_auth();
 
-        token_admin_client.mint(&receiver_address, &amount);
+        token_admin_client.mint(&pegkeeper, &amount);
 
         let fee = 0_i128;
 
@@ -270,8 +269,8 @@ impl MockTreasury for MockTreasuryContract {
         init_args.push_back(token_client.address.into_val(&e));
         init_args.push_back(amount.into_val(&e));
         init_args.push_back(fee.into_val(&e));
-        e.invoke_contract::<Val>(&receiver_address, &symbol_short!("exe_op"), init_args);
-        // MockReceiverClient::new(&e, &receiver_address).execute_operation(&e.current_contract_address(), &token_client.address, &amount, &fee);
+        e.invoke_contract::<Val>(&pegkeeper, &symbol_short!("exe_op"), init_args);
+        // MockPegkeeperClient::new(&e, &receiver_address).execute_operation(&e.current_contract_address(), &token_client.address, &amount, &fee);
         token_client.transfer_from(&e.current_contract_address(), &receiver_address, &e.current_contract_address(), &(amount + fee));
         token_balance_after = token_client.balance(&e.current_contract_address());
         if token_balance_after.clone() < token_balance_before.clone() + fee.clone() + amount.clone() {

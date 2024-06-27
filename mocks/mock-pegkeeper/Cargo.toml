@@ -1,5 +1,5 @@
 [package]
-name = "mock-receiver"
+name = "mock-pegkeeper"
 version = "0.1.0"
 edition = "2021"
 

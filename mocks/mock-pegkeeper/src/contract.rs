@@ -1,10 +1,10 @@
 use soroban_sdk::{contract, contractclient, contractimpl, log, panic_with_error, token, Address, Env};
-use crate::{errors::MockReceiverError, storage};
+use crate::{errors::MockPegkeeperError, storage};
 #[contract]
-pub struct MockReceiverContract;
+pub struct MockPegkeeperContract;
 
-#[contractclient(name="MockReceiverClient")]
-pub trait MockReceiver {
+#[contractclient(name="MockPegkeeperClient")]
+pub trait MockPegkeeper {
     /// Initialize the treasury
     ///
     /// ### Arguments
@@ -23,12 +23,12 @@ pub trait MockReceiver {
 }
 
 #[contractimpl]
-impl MockReceiver for MockReceiverContract {
+impl MockPegkeeper for MockPegkeeperContract {
     fn initialize(e: Env, admin: Address) {
         storage::extend_instance(&e);
 
         if storage::is_init(&e) {
-            panic_with_error!(&e, MockReceiverError::AlreadyInitializedError);
+            panic_with_error!(&e, MockPegkeeperError::AlreadyInitializedError);
         }
 
         storage::set_admin(&e, &admin);
@@ -36,7 +36,7 @@ impl MockReceiver for MockReceiverContract {
     fn exe_op(e: Env, caller: Address, token: Address, amount: i128, fee: i128) {
         caller.require_auth();
 
-        log!(&e, "================================= Receiveer Function Start ================================");
+        log!(&e, "================================= Pegkeeper Function Start ================================");
         let token_client = token::Client::new(
             &e,
             &token
@@ -53,7 +53,7 @@ impl MockReceiver for MockReceiverContract {
             &total_amount,
             &(e.ledger().sequence() + 1),
         );
-        log!(&e, "================================= Receiveer Function End ================================");
+        log!(&e, "================================= Pegkeeper Function End ================================");
     }
 }
 
