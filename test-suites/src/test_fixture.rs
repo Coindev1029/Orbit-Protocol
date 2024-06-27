@@ -84,9 +84,6 @@ impl TestFixture<'_> {
     /// Blend Protocol dependencies, including a BLND-USDC LP.
     
     pub fn create<'a>() -> TestFixture<'a> {
-
-        std::println!("===================================== Fixture Create in Text Fixture ===========================================");
-
         let e = Env::default();
         e.mock_all_auths();
         e.budget().reset_unlimited();
@@ -117,18 +114,12 @@ impl TestFixture<'_> {
         let (emitter_id, emitter_client) = create_emitter(&e);
         let (pool_factory_id, _) = create_pool_factory(&e);
 
-        std::println!("===================================== After Create With Backstop, Emitter, Pool Factory ===========================================");
-
         // deploy external dependencies
         let (lp, lp_client) = create_lp_pool(&e, &admin, &blnd_id, &usdc_id.clone());
-
-        std::println!("===================================== After Create Lp ===========================================");
         // initialize emitter
         // blnd_client.mint(&emitter_id, &(10_000_000 * SCALAR_7));
         blnd_client.set_admin(&emitter_id);
         emitter_client.initialize(&blnd_id, &backstop_id, &lp);
-
-        std::println!("===================================== After Emitter Initialize ===========================================");
 
         // initialize backstop
         backstop_client.initialize(
@@ -144,8 +135,6 @@ impl TestFixture<'_> {
             ],
         );
 
-        std::println!("===================================== After Backstop Initialize ===========================================");
-
         // initialize pool factory
         let pool_hash = e.deployer().upload_contract_wasm(POOL_WASM);
         let pool_init_meta = PoolInitMeta {
@@ -156,16 +145,10 @@ impl TestFixture<'_> {
         let pool_factory_client = PoolFactoryClient::new(&e, &pool_factory_id);
         pool_factory_client.initialize(&pool_init_meta);
 
-        std::println!("===================================== After Pool Factory Initialize Initialize ===========================================");
-
         // drop tokens to bombadil
         backstop_client.drop();
 
-        std::println!("===================================== After Backstop Drop Function ===========================================");
-
         let (_, mock_oracle_client) = create_mock_oracle(&e);
-
-        std::println!("===================================== After Create Mock Oracle ===========================================");
 
         mock_oracle_client.set_data(
             &admin,
@@ -182,8 +165,6 @@ impl TestFixture<'_> {
             &300,
         );
 
-        std::println!("===================================== After Oracle Set Data ===========================================");
-
         mock_oracle_client.set_price_stable(&svec![
             &e,
             2000_0000000, // eth
@@ -193,26 +174,12 @@ impl TestFixture<'_> {
             1_0000000,    // ousd
         ]);
 
-        std::println!("===================================== After Oracle Set Price ===========================================");
-
         let (mock_treasury_id, mock_treasury_client) = create_mock_treasury(&e);
         let (mock_pegkeeper_id, mock_pegkeeper_client) = create_mock_pegkeeper(&e);
 
         // deploy Orbit dependencies
         let (bridge_oracle_id, bridge_oracle_client) = create_bridge_oracle(&e);
         // bridge_oracle_client.initialize(&treasury_factory_id, &bridge_oracle_id);
-
-        std::println!("===================================== After Init Treasury, Pegkeeper, Receiver ===========================================");
-        
-        // // initialize treasury factory
-        // let treasury_hash = e.deployer().upload_contract_wasm(MOCK_TREASURY_WASM);
-        // let treasury_init_meta: TreasuryInitMeta = TreasuryInitMeta {
-        //     treasury_hash: treasury_hash.clone(),
-        //     pool_factory: pool_factory_id.clone(),
-        // };
-        // treasury_factory_client.initialize(&admin, &bridge_oracle_id, &treasury_init_meta);
-
-        // std::println!("===================================== After Treasury Init ===========================================");
 
         // Initialize soroswap
 
@@ -222,18 +189,12 @@ impl TestFixture<'_> {
         pair_factory_client.initialize(&admin, &pair_hash);
         router_client.initialize(&pair_factory_id);
 
-        std::println!("===================================== Router Init ===========================================");
-
         // initialize oracle
         mock_treasury_client.initialize(&admin, &ousd_id, &blnd_id, &router_id, &ousd_id, &mock_pegkeeper_id);
 
         ousd_client.set_admin(&mock_treasury_id);
 
-        std::println!("===================================== After Mock Treasury Initialize ===========================================");
-
         mock_pegkeeper_client.initialize(&admin);
-
-        std::println!("===================================== After Init Treasury, Pegkeeper ===========================================");
 
         let fixture = TestFixture {
             env: e,
@@ -278,8 +239,6 @@ impl TestFixture<'_> {
             pool: PoolClient::new(&self.env, &pool_id),
             reserves: HashMap::new(),
         });
-
-        std::println!("===================================== Push Pool to Buffer ===========================================");
     }
 
     pub fn create_pair(&mut self, token_a: TokenIndex, token_b: TokenIndex) {
@@ -310,8 +269,8 @@ impl TestFixture<'_> {
     /********** Contract Data Helpers **********/
 
     pub fn read_pool_config(&self, pool_index: usize) -> PoolConfig {
-        let treasury_fixture = &self.pools[pool_index];
-        self.env.as_contract(&treasury_fixture.pool.address, || {
+        let pool_fixture = &self.pools[pool_index];
+        self.env.as_contract(&pool_fixture.pool.address, || {
             self.env
                 .storage()
                 .instance()
@@ -321,8 +280,8 @@ impl TestFixture<'_> {
     }
 
     pub fn read_pool_emissions(&self, pool_index: usize) -> Map<u32, u64> {
-        let treasury_fixture = &self.pools[pool_index];
-        self.env.as_contract(&treasury_fixture.pool.address, || {
+        let pool_fixture = &self.pools[pool_index];
+        self.env.as_contract(&pool_fixture.pool.address, || {
             self.env
                 .storage()
                 .persistent()
@@ -332,9 +291,9 @@ impl TestFixture<'_> {
     }
 
     pub fn read_reserve_config(&self, pool_index: usize, asset_index: TokenIndex) -> ReserveConfig {
-        let treasury_fixture = &self.pools[pool_index];
+        let pool_fixture = &self.pools[pool_index];
         let token = &self.tokens[asset_index];
-        self.env.as_contract(&treasury_fixture.pool.address, || {
+        self.env.as_contract(&pool_fixture.pool.address, || {
             let token_id = &token.address;
             self.env
                 .storage()
@@ -345,9 +304,9 @@ impl TestFixture<'_> {
     }
 
     pub fn read_reserve_data(&self, pool_index: usize, asset_index: TokenIndex) -> ReserveData {
-        let treasury_fixture = &self.pools[pool_index];
+        let pool_fixture = &self.pools[pool_index];
         let token = &self.tokens[asset_index];
-        self.env.as_contract(&treasury_fixture.pool.address, || {
+        self.env.as_contract(&pool_fixture.pool.address, || {
             let token_id = &token.address;
             self.env
                 .storage()
@@ -363,10 +322,10 @@ impl TestFixture<'_> {
         asset_index: TokenIndex,
         token_type: u32,
     ) -> (ReserveEmissionsConfig, ReserveEmissionsData) {
-        let treasury_fixture = &self.pools[pool_index];
-        let reserve_index = treasury_fixture.reserves.get(&asset_index).unwrap();
+        let pool_fixture = &self.pools[pool_index];
+        let reserve_index = pool_fixture.reserves.get(&asset_index).unwrap();
         let res_emis_index = reserve_index * 2 + token_type;
-        self.env.as_contract(&treasury_fixture.pool.address, || {
+        self.env.as_contract(&pool_fixture.pool.address, || {
             let emis_config = self
                 .env
                 .storage()
