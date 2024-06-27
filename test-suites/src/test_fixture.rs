@@ -72,7 +72,7 @@ pub struct TestFixture<'a> {
     pub pair_factory: PairFactoryClient<'a>,
     pub pairs: Vec<PairFixture<'a>>,   
     pub router: RouterClient<'a>,
-    // pub bridge_oracle: BridgeOracleClient<'a>,          
+    pub bridge_oracle: BridgeOracleClient<'a>,          
     pub mock_treasury: MockTreasuryClient<'a>,
     pub mock_pegkeeper: MockPegkeeperClient<'a>,
 }
@@ -178,8 +178,8 @@ impl TestFixture<'_> {
         let (mock_pegkeeper_id, mock_pegkeeper_client) = create_mock_pegkeeper(&e);
 
         // deploy Orbit dependencies
-        // let (bridge_oracle_id, bridge_oracle_client) = create_bridge_oracle(&e);
-        // bridge_oracle_client.initialize(&treasury_factory_id, &bridge_oracle_id);
+        let (bridge_oracle_id, bridge_oracle_client) = create_bridge_oracle(&e);
+        bridge_oracle_client.initialize(&mock_treasury_id, &bridge_oracle_id);
 
         // Initialize soroswap
 
@@ -206,7 +206,7 @@ impl TestFixture<'_> {
             pair_factory: pair_factory_client,
             router: router_client,
             oracle: mock_oracle_client,
-            // bridge_oracle: bridge_oracle_client,
+            bridge_oracle: bridge_oracle_client,
             lp: lp_client,
             pools: vec![],
             pairs: vec![],
