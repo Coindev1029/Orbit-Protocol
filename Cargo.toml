@@ -3,13 +3,11 @@ resolver = "2"
 
 members = [
     "treasury",
-    "treasury-factory",
     "pegkeeper",
     "test-suites",
     "bridge-oracle",
     "mocks/mock-pegkeeper",
-    "mocks/mock-treasury",
-    "mocks/mock-receiver"]
+    "mocks/mock-treasury"]
 
 [profile.release-with-logs]
 inherits = "release"

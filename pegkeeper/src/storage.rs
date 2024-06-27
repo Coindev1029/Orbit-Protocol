@@ -27,7 +27,7 @@ pub fn is_init(e: &Env) -> bool { e.storage().instance().has(&DataKey::ADMIN) }
 ///
 /// ### Panics
 /// If the admin does not exist
-pub fn get_admin(e: &Env) -> Address {
+pub fn _get_admin(e: &Env) -> Address {
     e.storage()
         .instance()
         .get(&DataKey::ADMIN)
@@ -42,63 +42,4 @@ pub fn set_admin(e: &Env, new_admin: &Address) {
     e.storage()
         .instance()
         .set(&DataKey::ADMIN, new_admin);
-}
-
-/// Fetch the current treasury Address depending on token address
-///
-/// ### Panics
-/// If the treasury does not exist
-pub fn get_treasury(e: &Env, token_address: Address) -> Address {
-    e.storage()
-        .instance()
-        .get(&DataKey::TREASURY(token_address))
-        .unwrap_optimized()
-}
-
-/// Set the treasury Address depending on token address
-///
-/// ### Arguments
-/// * `token_address` - token address of treasury, `treasury_address` - The Address for the treasury
-pub fn set_treasury(e: &Env, token_address: Address, treasury_address: &Address) {
-    e.storage()
-        .instance()
-        .set(&DataKey::TREASURY(token_address), treasury_address);
-}
-
-/// Fetch the current balance
-///
-pub fn get_balance(e: &Env) -> i128 {
-    e.storage()
-        .instance()
-        .get(&DataKey::BALANCE)
-        .unwrap_optimized()
-}
-
-/// Set the token balance
-///
-/// ### Arguments
-/// * `balance` - The balance of the contract
-pub fn set_balance(e: &Env, balance: &i128) {
-    e.storage()
-        .instance()
-        .set(&DataKey::BALANCE, balance);
-}
-
-/// Fetch the maximum duration for swap transaction
-///
-pub fn get_maximum_duration(e: &Env) -> u64 {
-    e.storage()
-        .instance()
-        .get(&DataKey::MAXIMUMDURATION)
-        .unwrap_optimized()
-}
-
-/// Set the maximum duration for swap transaction
-///
-/// ### Arguments
-/// * `maximum_duration` - The maximum_duration for swap transaction
-pub fn set_maximum_duration(e: &Env, maximum_duration: &u64) {
-    e.storage()
-        .instance()
-        .set(&DataKey::MAXIMUMDURATION, maximum_duration);
 }

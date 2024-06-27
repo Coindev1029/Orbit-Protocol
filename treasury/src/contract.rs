@@ -1,7 +1,6 @@
 use crate::storage;
 use crate::dependencies::pool::{Client as PoolClient, Request};
-use crate::dependencies::pegkeeper::Client as PegkeeperClient;
-use soroban_sdk::{contract, contractclient, contractimpl, Address, Env, IntoVal, vec, Vec, Val, Symbol, symbol_short, token, panic_with_error};
+use soroban_sdk::{contract, contractclient, contractimpl, log, panic_with_error, symbol_short, token, vec, Address, Env, IntoVal, Symbol, Val, Vec};
 use soroban_sdk::auth::{ContractContext, InvokerContractAuthEntry, SubContractInvocation};
 use crate::errors::TreasuryError;
 use token::Client as TokenClient;
@@ -55,11 +54,11 @@ pub trait Treasury {
     /// (pegkeeper only) only regiestered pegkeeper can call this function and flashloan by using this function
     ///
     /// ### Arguments
-    /// * `new_pegkeeper` - The new pegkeeper address
-    ///
+    /// * `receiver_address` - The receiver address for flash loan receive
+    /// * `amount` - The amount for flash loan
     /// ### Panics
     /// If the caller is not the pegkeeper
-    fn flash_loan(e: Env, amount: i128);
+    fn fl_loan(e: Env, receiver_address: Address, amount: i128) -> Result<(), TreasuryError>;
 
     /// (Admin only) Increase the supply of the pool
     ///
@@ -221,73 +220,44 @@ impl Treasury for TreasuryContract {
         //e.events().publish(Symbol::new(&e, "decrease_supply"), admin);
     }
 
-    fn flash_loan(e: Env, amount: i128) {
+    fn fl_loan(e: Env, receiver_address: Address, amount: i128) -> Result<(), TreasuryError> {
         storage::extend_instance(&e);
+        
+        log!(&e, "================================= Real: Treasury FlashLoan Function Start ============================");
+
         let pegkeeper: Address = storage::get_pegkeeper(&e);
         let token: Address = storage::get_token(&e);
-        let pegkeeper_client = PegkeeperClient::new(&e, &pegkeeper);
-        // let token_contract_id = e.register_stellar_asset_contract(token.clone());
-        let token_admin = TokenAdminClient::new(&e, &token);
+        let token_admin_client = TokenAdminClient::new(&e, &token);
         let token_client = TokenClient::new(&e, &token);
-        let balance_before: i128;
-        let balance_after: i128;
-        let loan_fee: i128 = storage::get_loan_fee(&e);
+        let token_balance_before = token_client.balance(&e.current_contract_address());
+        let token_balance_after;
         
-        pegkeeper.require_auth_for_args((token.clone(), amount).into_val(&e),);
+        pegkeeper.require_auth();
 
-        let args_mint: Vec<Val> = vec![
-            &e,
-            e.current_contract_address().into_val(&e),
-            pegkeeper.into_val(&e),
-            amount.into_val(&e),
-        ];
-        e.authorize_as_current_contract(vec![
-            &e,
-            InvokerContractAuthEntry::Contract(SubContractInvocation {
-                context: ContractContext {
-                    contract: token.clone(),
-                    fn_name: Symbol::new(&e, "mint"),
-                    args: args_mint.clone(),
-                },
-                sub_invocations: vec![&e],
-            })
-        ]);
+        token_admin_client.mint(&receiver_address, &amount);
 
-        let args_burn: Vec<Val> = vec![
-            &e,
-            e.current_contract_address().into_val(&e),
-            amount.into_val(&e),
-        ];
-        e.authorize_as_current_contract(vec![
-            &e,
-            InvokerContractAuthEntry::Contract(SubContractInvocation {
-                context: ContractContext {
-                    contract: token.clone(),
-                    fn_name: Symbol::new(&e, "burn"),
-                    args: args_burn.clone(),
-                },
-                sub_invocations: vec![&e],
-            })
-        ]);
+        let fee = 0_i128;
 
-        balance_before = token_client.balance(&e.current_contract_address());
+        let mut init_args: Vec<Val> = vec![&e];
+        init_args.push_back(e.current_contract_address().into_val(&e));
+        init_args.push_back(token_client.address.into_val(&e));
+        init_args.push_back(amount.into_val(&e));
+        init_args.push_back(fee.into_val(&e));
         
-        token_admin.mint(&pegkeeper, &amount);
+        e.invoke_contract::<Val>(&receiver_address, &symbol_short!("exe_op"), init_args);
         
-        let blend_address = storage::get_blend(&e);
-        let soroswap_address = storage::get_soroswap(&e);
-        let collateral_token_address = storage::get_collateral_token_address(&e);
-
-        pegkeeper_client.flashloan_receive(&token, &e.current_contract_address(), &blend_address, &soroswap_address, &collateral_token_address, &amount, &loan_fee);
-
-        balance_after = token_client.balance(&e.current_contract_address());
-
-        if balance_after >= balance_before + amount + loan_fee {
-            token_client.burn(&e.current_contract_address(), &amount);
-            e.events().publish((FLASH_LOAN, symbol_short!("flashloan")), (amount, loan_fee));
-        } else {
-            panic_with_error!(&e, TreasuryError::FlashloanFailedError);
+        token_client.transfer_from(&e.current_contract_address(), &receiver_address, &e.current_contract_address(), &(amount + fee));
+        token_balance_after = token_client.balance(&e.current_contract_address());
+        
+        if token_balance_after.clone() < token_balance_before.clone() + fee.clone() + amount.clone() {
+            panic_with_error!(&e, TreasuryError::FlashloanNotRepaid);
         }
+
+        token_client.burn(&e.current_contract_address(), &(token_balance_after.clone() - token_balance_before.clone()));
+        
+        log!(&e, "================================= Real: Treasury FlashLoan Function End ============================");
+
+        Ok(())
     }
 
     fn get_token_address(e: Env) -> Address {

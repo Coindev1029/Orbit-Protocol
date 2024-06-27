@@ -9,16 +9,4 @@ pub enum PegkeeperError {
 
     /// already initialized
     AlreadyInitializedError = 102,
-    
-    /// not proper treasury for token
-    NotProperTreasury = 103,
-
-    /// uncorrect amount for loan
-    UncorrectAmount = 104,
-
-    /// unsufficient amount to repay
-    InsufficientBalance = 105,
-
-    /// failed to repay liabilities to blend
-    RepayLiabilitiesFail = 106,
 }
