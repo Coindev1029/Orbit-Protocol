@@ -57,7 +57,7 @@ pub trait MockTreasury {
     ///
     /// ### Panics
     /// If the caller is not the pegkeeper
-    fn fl_loan(e: Env, receiver_address: Address, amount: i128) -> Result<(), MockTreasuryError>;
+    fn fl_loan(e: Env, amount: i128) -> Result<(), MockTreasuryError>;
 
     /// (Admin only) Increase the supply of the pool
     ///
@@ -271,7 +271,7 @@ impl MockTreasury for MockTreasuryContract {
         init_args.push_back(fee.into_val(&e));
         e.invoke_contract::<Val>(&pegkeeper, &symbol_short!("exe_op"), init_args);
         // MockPegkeeperClient::new(&e, &receiver_address).execute_operation(&e.current_contract_address(), &token_client.address, &amount, &fee);
-        token_client.transfer_from(&e.current_contract_address(), &receiver_address, &e.current_contract_address(), &(amount + fee));
+        token_client.transfer_from(&e.current_contract_address(), &pegkeeper, &e.current_contract_address(), &(amount + fee));
         token_balance_after = token_client.balance(&e.current_contract_address());
         if token_balance_after.clone() < token_balance_before.clone() + fee.clone() + amount.clone() {
             panic_with_error!(&e, MockTreasuryError::FlashloanNotRepaid);

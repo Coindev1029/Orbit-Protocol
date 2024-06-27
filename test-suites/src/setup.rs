@@ -220,11 +220,11 @@ mod tests {
 
         let mock_usdt_token = &fixture.tokens[TokenIndex::MockOusd];
 
-        let token_balance_before = mock_usdt_token.balance(&fixture.mock_receiver.address);
-        fixture.mock_pegkeeper.flash_loan(&mock_usdt_token.address, &1000i128);
-        let token_balance_before = mock_usdt_token.balance(&fixture.mock_receiver.address);
+        let token_balance_before = mock_usdt_token.balance(&fixture.mock_pegkeeper.address);
+        fixture.mock_treasury.fl_loan(&1000i128);
+        let token_balance_before = mock_usdt_token.balance(&fixture.mock_pegkeeper.address);
         assert_eq!(token_balance_before.clone(), token_balance_before.clone());
-        std::println!("===================== balance{:?} =====================", mock_usdt_token.balance(&fixture.mock_receiver.address));
+        std::println!("===================== balance{:?} =====================", mock_usdt_token.balance(&fixture.mock_pegkeeper.address));
         std::println!("=====================================FlashLoan Logs Start===========================================");
         std::println!("{:?}", fixture.env.logs().all().join("\n"));
         std::println!("=====================================FlashLoan Logs End===========================================");

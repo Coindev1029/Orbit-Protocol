@@ -25,10 +25,8 @@ use crate::dependencies::treasury::{TreasuryClient, TREASURY_WASM};
 use crate::dependencies::bridge_oracle::{BridgeOracleClient, create_bridge_oracle};
 use crate::dependencies::pair_factory::{create_pair_factory, PairFactoryClient};
 use crate::dependencies::router::{create_router, RouterClient};
-use crate::dependencies::treasury_factory::{FactoryAsset, create_treasury_factory, TreasuryFactoryClient, TreasuryInitMeta};
 use crate::dependencies::mock_treasury::{create_mock_treasury, MockTreasuryClient};
 use crate::dependencies::mock_pegkeeper::{create_mock_pegkeeper, MockPegkeeperClient};
-use crate::dependencies::mock_receiver::{create_mock_receiver, MockPegkeeperClient};
 
 pub const SCALAR_7: i128 = 1_000_0000;
 pub const SCALAR_9: i128 = 1_000_000_000;
@@ -72,11 +70,9 @@ pub struct TestFixture<'a> {
     pub pair_factory: PairFactoryClient<'a>,
     pub pairs: Vec<PairFixture<'a>>,   
     pub router: RouterClient<'a>,
-    pub bridge_oracle: BridgeOracleClient<'a>,        
-    pub treasury_factory: TreasuryFactoryClient<'a>,    
+    pub bridge_oracle: BridgeOracleClient<'a>,          
     pub mock_treasury: MockTreasuryClient<'a>,
     pub mock_pegkeeper: MockPegkeeperClient<'a>,
-    pub mock_receiver: MockPegkeeperClient<'a>
 }
 
 impl TestFixture<'_> {
@@ -191,12 +187,10 @@ impl TestFixture<'_> {
 
         let (mock_treasury_id, mock_treasury_client) = create_mock_treasury(&e);
         let (mock_pegkeeper_id, mock_pegkeeper_client) = create_mock_pegkeeper(&e);
-        let (mock_receiver_id, mock_receiver_client) = create_mock_receiver(&e);
 
         // deploy Orbit dependencies
-        let (treasury_factory_id, treasury_factory_client) = create_treasury_factory(&e);
         let (bridge_oracle_id, bridge_oracle_client) = create_bridge_oracle(&e);
-        bridge_oracle_client.initialize(&treasury_factory_id, &bridge_oracle_id);
+        // bridge_oracle_client.initialize(&treasury_factory_id, &bridge_oracle_id);
 
         std::println!("===================================== After Init Treasury, Pegkeeper, Receiver ===========================================");
         
@@ -225,12 +219,9 @@ impl TestFixture<'_> {
 
         std::println!("===================================== After Mock Treasury Initialize ===========================================");
 
-        mock_pegkeeper_client.initialize(&admin, &0_u64);
-        mock_pegkeeper_client.add_treasury(&mock_ousd_token_id, &mock_treasury_id);
-        mock_pegkeeper_client.set_receiver(&mock_receiver_id);
-        mock_receiver_client.initialize(&mock_pegkeeper_id);
+        mock_pegkeeper_client.initialize(&admin);
 
-        std::println!("===================================== After Init Treasury, Pegkeeper, Receiver ===========================================");
+        std::println!("===================================== After Init Treasury, Pegkeeper ===========================================");
 
         let fixture = TestFixture {
             env: e,
@@ -239,7 +230,6 @@ impl TestFixture<'_> {
             emitter: emitter_client,
             backstop: backstop_client,
             pool_factory: pool_factory_client,
-            treasury_factory: treasury_factory_client,
             pair_factory: pair_factory_client,
             router: router_client,
             oracle: mock_oracle_client,
@@ -254,7 +244,6 @@ impl TestFixture<'_> {
             ],
             mock_treasury: mock_treasury_client,
             mock_pegkeeper: mock_pegkeeper_client,
-            mock_receiver: mock_receiver_client
         };
         fixture.jump(7 * 24 * 60 * 60);
         fixture

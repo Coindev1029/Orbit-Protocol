@@ -7,7 +7,7 @@ members = [
     "test-suites",
     "bridge-oracle",
     "mocks/mock-pegkeeper",
-    "mocks/mock-receiver"]
+    "mocks/mock-treasury"]
 
 [profile.release-with-logs]
 inherits = "release"
