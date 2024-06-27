@@ -2,7 +2,7 @@ use soroban_sdk::{testutils::Address as _, Address, Env};
 
 mod treasury_contract {
     soroban_sdk::contractimport!(
-        file = "../wasm/orbit8/treasury.wasm"
+        file = "../wasm/orbit/treasury.wasm"
     );
 }
 

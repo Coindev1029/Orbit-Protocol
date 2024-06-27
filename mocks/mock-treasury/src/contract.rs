@@ -139,9 +139,9 @@ impl MockTreasury for MockTreasuryContract {
 
         let pegkeeper: Address = storage::get_pegkeeper(&e);
         let blend_pool: Address = storage::get_blend_pool(&e, &token);
-        let token_client = TokenClient::new(&e, &token);
-        // Mint tokens to pegkeeper
-        TokenAdminClient::new(&e, &token).mint(&pegkeeper, &amount);
+
+        StellarAssetClient::new(&e, &token).mint(&pegkeeper, &amount);
+
         // Execute operation
         let exe_op_args = vec![
             &e,

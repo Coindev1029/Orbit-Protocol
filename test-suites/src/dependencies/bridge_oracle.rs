@@ -1,6 +1,6 @@
 use soroban_sdk::{testutils::Address as _, Address, Env};
 mod bridge_oracle_contract {
-    soroban_sdk::contractimport!(file = "../wasm/orbit8/bridge_oracle.wasm");
+    soroban_sdk::contractimport!(file = "../wasm/orbit/bridge_oracle.wasm");
 }
 
 pub use bridge_oracle_contract::{Client as BridgeOracleClient, WASM as BRIDGE_ORACLE_WASM, Asset};

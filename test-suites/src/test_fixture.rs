@@ -169,7 +169,7 @@ impl TestFixture<'_> {
         pair_factory_client.initialize(&admin, &pair_hash);
         router_client.initialize(&pair_factory_id);
 
-        // Deploy orbit8 dependencies
+        // Deploy orbit dependencies
         let (bridge_oracle_id, bridge_oracle_client) = create_bridge_oracle(&e);
         let (treasury_id, treasury_client) = create_treasury(&e);
         let (mock_treasury_id, mock_treasury_client) = create_mock_treasury(&e);
@@ -184,8 +184,8 @@ impl TestFixture<'_> {
         }
 
         // init pegkeeper
-        pegkeeper_client.initialize(&admin, &router_id);
-        mock_pegkeeper_client.initialize(&admin, &router_id);
+        pegkeeper_client.initialize(&treasury_id, &router_id);
+        mock_pegkeeper_client.initialize(&mock_treasury_id, &router_id);
 
         // init treasury
         treasury_client.initialize(&admin, &bridge_oracle_id, &pegkeeper_id);

@@ -36,6 +36,7 @@ impl MockPegkeeper for MockPegkeeperContract {
     }
     fn exe_op(e: Env, caller: Address, token: Address, blend_pool: Address, liquidation: Address, amount: i128) {
         storage::extend_instance(&e);
+
         let admin = storage::get_admin(&e);
         admin.require_auth();
 
