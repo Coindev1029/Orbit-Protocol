@@ -1,2 +1,6 @@
 /target
-/test-suites/test_snapshots/
+*/test_snapshots/
+.idea/
+.vscode/
+.cargo/
+.DS_Store

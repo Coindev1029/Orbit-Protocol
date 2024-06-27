@@ -9,9 +9,6 @@ const LEDGER_BUMP_INSTANCE: u32 = LEDGER_THRESHOLD_INSTANCE + ONE_DAY_LEDGERS; /
 #[contracttype]
 pub enum DataKey {
     ADMIN,
-    TREASURY(Address), // mapping token address to treasury addres
-    BALANCE,
-    MAXIMUMDURATION,
 }
 /// Bump the instance rent for the contract
 pub fn extend_instance(e: &Env) {
@@ -27,7 +24,7 @@ pub fn is_init(e: &Env) -> bool { e.storage().instance().has(&DataKey::ADMIN) }
 ///
 /// ### Panics
 /// If the admin does not exist
-pub fn _get_admin(e: &Env) -> Address {
+pub fn get_admin(e: &Env) -> Address {
     e.storage()
         .instance()
         .get(&DataKey::ADMIN)

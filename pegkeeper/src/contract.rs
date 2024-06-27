@@ -19,7 +19,7 @@ pub trait Pegkeeper {
     /// * `token` - The Address for the token
     /// * `amount` - The Amount for the flashloan
     /// * `fee` - The Fee for the flashloan
-    fn exe_op(e: Env, caller: Address, token: Address, amount: i128, fee: i128);
+    fn exe_op(e: Env, caller: Address, token: Address, blend_pool: Address, liquidation: Address, amount: i128);
 }
 
 #[contractimpl]
@@ -33,8 +33,10 @@ impl Pegkeeper for PegkeeperContract {
 
         storage::set_admin(&e, &admin);
     }
-    fn exe_op(e: Env, caller: Address, token: Address, amount: i128, fee: i128) {
-        caller.require_auth();
+    fn exe_op(e: Env, caller: Address, token: Address, blend_pool: Address, liquidation: Address, amount: i128) {
+        storage::extend_instance(&e);
+        let admin = storage::get_admin(&e);
+        admin.require_auth();
 
         log!(&e, "================================= Real: Pegkeeper Function Start ================================");
         let token_client = token::Client::new(
@@ -45,12 +47,10 @@ impl Pegkeeper for PegkeeperContract {
         // Perform liquidation & swap on blend & soroswap
         // ...
         
-        let total_amount = amount + fee;
-        
         token_client.approve(
             &e.current_contract_address(),
             &caller,
-            &total_amount,
+            &amount,
             &(e.ledger().sequence() + 1),
         );
         log!(&e, "================================= Real: Pegkeeper Function End ================================");
