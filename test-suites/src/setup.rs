@@ -19,14 +19,12 @@ pub fn create_fixture_with_data<'a>() -> TestFixture<'a> {
     fixture.tokens[TokenIndex::STABLE].mint(&frodo, &(100_000 * 10i128.pow(6)));
     fixture.tokens[TokenIndex::XLM].mint(&frodo, &(1_000_000 * SCALAR_7));
     fixture.tokens[TokenIndex::WETH].mint(&frodo, &(100 * 10i128.pow(9)));
-    fixture.tokens[TokenIndex::OUSD].mint(&frodo, &(100_000 * 10i128.pow(6)));
+    // fixture.tokens[TokenIndex::OUSD].mint(&frodo, &(100_000 * 10i128.pow(6)));
 
     // mint LP tokens with whale
+    // frodo has 40m BLND from drop
     fixture.tokens[TokenIndex::BLND].mint(&frodo, &(70_000_000 * SCALAR_7));
-    // fixture.tokens[TokenIndex::BLND].approve(&frodo, &fixture.lp.address, &i128::MAX, &99999);
     fixture.tokens[TokenIndex::USDC].mint(&frodo, &(2_600_000 * SCALAR_7));
-    // fixture.tokens[TokenIndex::USDC].approve(&frodo, &fixture.lp.address, &i128::MAX, &99999);
-
     fixture.lp.join_pool(
         &(10_000_000 * SCALAR_7),
         &svec![&fixture.env, 110_000_000 * SCALAR_7, 2_600_000 * SCALAR_7,],
@@ -55,12 +53,12 @@ pub fn create_fixture_with_data<'a>() -> TestFixture<'a> {
     weth_config.util = 0_700_0000;
     fixture.create_pool_reserve(0, TokenIndex::WETH, &weth_config);
 
-    let mut ousd_config = default_reserve_metadata();
-    ousd_config.decimals = 6;
-    ousd_config.c_factor = 0_900_0000;
-    ousd_config.l_factor = 0_950_0000;
-    ousd_config.util = 0_850_0000;
-    fixture.create_pool_reserve(0, TokenIndex::OUSD, &ousd_config);
+    // let mut ousd_config = default_reserve_metadata();
+    // ousd_config.decimals = 6;
+    // ousd_config.c_factor = 0_900_0000;
+    // ousd_config.l_factor = 0_950_0000;
+    // ousd_config.util = 0_850_0000;
+    // fixture.create_pool_reserve(0, TokenIndex::OUSD, &ousd_config);
 
     // enable emissions for pool
     let pool_fixture = &fixture.pools[0];
@@ -78,22 +76,19 @@ pub fn create_fixture_with_data<'a>() -> TestFixture<'a> {
             share: 0_400_0000
         },
     ];
-
     pool_fixture.pool.set_emissions_config(&reserve_emissions);
 
     // deposit into backstop, add to reward zone
     fixture
         .backstop
         .deposit(&frodo, &pool_fixture.pool.address, &(50_000 * SCALAR_7));
-
     fixture.backstop.update_tkn_val();
-
     fixture
         .backstop
         .add_reward(&pool_fixture.pool.address, &Address::generate(&fixture.env));
     pool_fixture.pool.set_status(&3);
     pool_fixture.pool.update_status();
-    
+
     // enable emissions
     fixture.emitter.distribute();
     fixture.backstop.gulp_emissions();
@@ -115,25 +110,24 @@ pub fn create_fixture_with_data<'a>() -> TestFixture<'a> {
             amount: 8_000 * 10i128.pow(6),
         },
     ];
-
-    // pool_fixture.pool.submit(&frodo, &frodo, &frodo, &requests);
+    pool_fixture.pool.submit(&frodo, &frodo, &frodo, &requests);
 
     // supply and borrow OUSD for 80% utilization (close to target)
-    let requests: SVec<Request> = svec![
-        &fixture.env,
-        Request {
-            request_type: RequestType::SupplyCollateral as u32,
-            address: fixture.tokens[TokenIndex::OUSD].address.clone(),
-            amount: 10_000 * 10i128.pow(6),
-        },
-        Request {
-            request_type: RequestType::Borrow as u32,
-            address: fixture.tokens[TokenIndex::OUSD].address.clone(),
-            amount: 8_000 * 10i128.pow(6),
-        },
-    ];
+    // let requests: SVec<Request> = svec![
+    //     &fixture.env,
+    //     Request {
+    //         request_type: RequestType::SupplyCollateral as u32,
+    //         address: fixture.tokens[TokenIndex::OUSD].address.clone(),
+    //         amount: 10_000 * 10i128.pow(6),
+    //     },
+    //     Request {
+    //         request_type: RequestType::Borrow as u32,
+    //         address: fixture.tokens[TokenIndex::OUSD].address.clone(),
+    //         amount: 8_000 * 10i128.pow(6),
+    //     },
+    // ];
    
-    pool_fixture.pool.submit(&frodo, &frodo, &frodo, &requests);
+    // pool_fixture.pool.submit(&frodo, &frodo, &frodo, &requests);
     
     // supply and borrow WETH for 50% utilization (below target)
     let requests: SVec<Request> = svec![
@@ -202,10 +196,10 @@ mod tests {
         //     2_000 * 10i128.pow(6),
         //     fixture.tokens[TokenIndex::STABLE].balance(&pool_fixture.pool.address)
         // );
-        assert_eq!(
-            2_000 * 10i128.pow(6),
-            fixture.tokens[TokenIndex::OUSD].balance(&pool_fixture.pool.address)
-        );
+        // assert_eq!(
+        //     2_000 * 10i128.pow(6),
+        //     fixture.tokens[TokenIndex::OUSD].balance(&pool_fixture.pool.address)
+        // );
         assert_eq!(
             35_000 * SCALAR_7,
             fixture.tokens[TokenIndex::XLM].balance(&pool_fixture.pool.address)

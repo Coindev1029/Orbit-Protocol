@@ -72,7 +72,7 @@ pub struct TestFixture<'a> {
     pub pair_factory: PairFactoryClient<'a>,
     pub pairs: Vec<PairFixture<'a>>,   
     pub router: RouterClient<'a>,
-    pub bridge_oracle: BridgeOracleClient<'a>,          
+    // pub bridge_oracle: BridgeOracleClient<'a>,          
     pub mock_treasury: MockTreasuryClient<'a>,
     pub mock_pegkeeper: MockPegkeeperClient<'a>,
 }
@@ -178,7 +178,7 @@ impl TestFixture<'_> {
         let (mock_pegkeeper_id, mock_pegkeeper_client) = create_mock_pegkeeper(&e);
 
         // deploy Orbit dependencies
-        let (bridge_oracle_id, bridge_oracle_client) = create_bridge_oracle(&e);
+        // let (bridge_oracle_id, bridge_oracle_client) = create_bridge_oracle(&e);
         // bridge_oracle_client.initialize(&treasury_factory_id, &bridge_oracle_id);
 
         // Initialize soroswap
@@ -206,7 +206,7 @@ impl TestFixture<'_> {
             pair_factory: pair_factory_client,
             router: router_client,
             oracle: mock_oracle_client,
-            bridge_oracle: bridge_oracle_client,
+            // bridge_oracle: bridge_oracle_client,
             lp: lp_client,
             pools: vec![],
             pairs: vec![],
@@ -230,23 +230,13 @@ impl TestFixture<'_> {
             &self.admin,
             &name,
             &BytesN::<32>::random(&self.env),
-            &self.oracle.address.clone(),
+            &self.oracle.address,
             &backstop_take_rate,
             &max_positions,
         );
-
         self.pools.push(PoolFixture {
             pool: PoolClient::new(&self.env, &pool_id),
             reserves: HashMap::new(),
-        });
-    }
-
-    pub fn create_pair(&mut self, token_a: TokenIndex, token_b: TokenIndex) {
-        let token_a_id = &self.tokens[token_a].address;
-        let token_b_id = &self.tokens[token_b].address;
-        let pair_id = self.pair_factory.create_pair(token_a_id, token_b_id);
-        self.pairs.push(PairFixture {
-            pair: PairClient::new(&self.env, &pair_id),
         });
     }
 
