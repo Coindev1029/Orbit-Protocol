@@ -1,5 +1,6 @@
 use soroban_sdk::{contract, contractclient, contractimpl, log, panic_with_error, token, vec, Vec, Address, Env, IntoVal, Symbol, Val};
 use crate::dependencies::pool::{Client as PoolClient, Request};
+use crate::dependencies::router::{Client as RouterClient};
 use crate::{errors::MockPegkeeperError, storage};
 use soroban_sdk::auth::{ContractContext, InvokerContractAuthEntry, SubContractInvocation};
 #[contract]
@@ -31,6 +32,8 @@ pub trait MockPegkeeper {
     /// * `amount` - The Amount for the flashloan
     /// * `fee` - The Fee for the flashloan
     fn liquidate(e: Env, auction_creator: Address, ousd: Address, ousd_bid_amount: i128, xlm: Address, xlm_lot_amount: i128, blend_pool: Address, amount: i128);
+
+    fn swap(e: Env, pair: Address, token_a: Address, token_b: Address, amount_a: i128, amount_b: i128);
 }
 
 #[contractimpl]
@@ -99,6 +102,39 @@ impl MockPegkeeper for MockPegkeeperContract {
         PoolClient::new(&e, &blend_pool).submit(&e.current_contract_address(), &e.current_contract_address(), &e.current_contract_address(), &fill_requests);
 
         log!(&e, "================================= MockPegkeeper  liquidation End ================================");
+    }
+
+    fn swap(e: Env, pair: Address, token_a: Address, token_b: Address, amount_a: i128, amount_b: i128) {
+        log!(&e, "================================= MockPegkeeper  Swap Function ================================");
+        storage::extend_instance(&e);
+
+        let router = storage::get_router(&e);
+        let router_client = RouterClient::new(&e, &router);
+
+        let path = vec![
+            &e,
+            token_a.clone(),
+            token_b.clone(),
+        ];
+        let args: Vec<Val> = vec![
+            &e,
+            e.current_contract_address().into_val(&e),
+            pair.into_val(&e),
+            amount_a.into_val(&e),
+        ];
+        e.authorize_as_current_contract(vec![
+            &e,
+            InvokerContractAuthEntry::Contract( SubContractInvocation {
+                context: ContractContext {
+                    contract: token_a.clone(),
+                    fn_name: Symbol::new(&e, "transfer"),
+                    args: args.clone(),
+                },
+                sub_invocations: vec![&e]
+            })
+        ]);
+        router_client.swap_exact_tokens_for_tokens(&amount_a, &amount_b, &path, &e.current_contract_address(), &u64::MAX);
+        log!(&e, "================================= MockPegkeeper  Swap End ================================");
     }
 }
 

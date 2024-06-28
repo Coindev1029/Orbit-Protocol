@@ -237,11 +237,15 @@ impl TestFixture<'_> {
         });
     }
 
-    pub fn create_pair(&mut self, token_a: TokenIndex, token_b: TokenIndex) {
+    pub fn create_pair(&mut self, token_a: TokenIndex, token_b: TokenIndex, supply_a: i128, supply_b: i128) {
         let token_a_id = &self.tokens[token_a].address;
         let token_b_id = &self.tokens[token_b].address;
         let pair_id = self.pair_factory.create_pair(token_a_id, token_b_id);
-        self.pairs.push(PairClient::new(&self.env, &pair_id));
+        let pair = PairClient::new(&self.env, &pair_id);
+        self.tokens[token_a].mint(&pair_id, &supply_a);
+        self.tokens[token_b].mint(&pair_id, &supply_b);
+        pair.deposit(&self.admin);
+        self.pairs.push(pair);
     }
 
     pub fn create_pool_reserve(
