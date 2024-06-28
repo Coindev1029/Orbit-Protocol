@@ -3,7 +3,7 @@ mod pool_contract {
     soroban_sdk::contractimport!(file = "../wasm/blend/pool.wasm");
 }
 
-pub use pool_contract::{Client as PoolClient, ReserveEmissionsData, PoolDataKey, ReserveEmissionsConfig, PoolConfig, ReserveData, ReserveConfig, Request, ReserveEmissionMetadata, Positions, Reserve, WASM as POOL_WASM};
+pub use pool_contract::{Client as PoolClient, Positions, PoolDataKey, ReserveConfig, ReserveData, ReserveEmissionsData, ReserveEmissionsConfig, PoolConfig,  Request, ReserveEmissionMetadata, Reserve, WASM as POOL_WASM};
 
 #[derive(Clone, PartialEq)]
 #[repr(u32)]

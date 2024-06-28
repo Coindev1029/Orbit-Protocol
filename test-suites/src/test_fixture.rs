@@ -177,7 +177,7 @@ impl TestFixture<'_> {
         let (mock_pegkeeper_id, mock_pegkeeper_client) = create_mock_pegkeeper(&e);
 
         // init bridge oracle
-        if(mock) {
+        if mock {
             bridge_oracle_client.initialize(&mock_treasury_id, &mock_oracle_id);
         } else {
             bridge_oracle_client.initialize(&treasury_id, &mock_oracle_id);

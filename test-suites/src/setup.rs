@@ -87,7 +87,7 @@ pub fn create_fixture_with_data<'a>(mock: bool) -> TestFixture<'a> {
 
     // initiate the Treasury
     let token: Address = fixture.tokens[TokenIndex::OUSD].address.clone();
-    if (mock) {
+    if mock {
         let asset: MockAsset = MockAsset::Stellar(fixture.tokens[TokenIndex::USDC].address.clone());
         fixture.mock_treasury.deploy_stablecoin(&token, &asset, &pool_fixture.pool.address);
         fixture.tokens[TokenIndex::OUSD].set_admin(&fixture.mock_treasury.address);
@@ -118,7 +118,7 @@ pub fn create_fixture_with_data<'a>(mock: bool) -> TestFixture<'a> {
 
     fixture.jump(60);
 
-    if (mock) {
+    if mock {
         fixture.mock_treasury.increase_supply(&token, &(1_000_000 * SCALAR_7));
     } else {
         fixture.treasury.increase_supply(&token, &(1_000_000 * SCALAR_7));

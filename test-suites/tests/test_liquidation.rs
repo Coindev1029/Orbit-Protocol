@@ -16,6 +16,8 @@ use test_suites::{
 fn test_liquidations() {
     let fixture = create_fixture_with_data(false);
 
+    let pegkeeper = &fixture.mock_pegkeeper;
+
     let pool_fixture = &fixture.pools[0];
 
     let henk = Address::generate(&fixture.env);
@@ -28,16 +30,6 @@ fn test_liquidations() {
             address: fixture.tokens[TokenIndex::XLM].address.clone(),
             amount: 100_000 * SCALAR_7,
         },
-    ];
-    pool_fixture.pool.submit(&henk, &henk, &henk, &requests);
-
-    assert_eq!(
-        20_000 * SCALAR_7,
-        fixture.tokens[TokenIndex::XLM].balance(&henk)
-    );
-
-    let requests: Vec<Request> = vec![
-        &fixture.env,
         Request {
             request_type: RequestType::Borrow as u32,
             address: fixture.tokens[TokenIndex::OUSD].address.clone(),
@@ -46,6 +38,10 @@ fn test_liquidations() {
     ];
     pool_fixture.pool.submit(&henk, &henk, &henk, &requests);
 
+    assert_eq!(
+        20_000 * SCALAR_7,
+        fixture.tokens[TokenIndex::XLM].balance(&henk)
+    );
     assert_eq!(
         8_800 * SCALAR_7,
         fixture.tokens[TokenIndex::OUSD].balance(&henk)
@@ -56,13 +52,8 @@ fn test_liquidations() {
         &fixture.env,
         1_0000000,    // usdc
         0_0800000,    // xlm
-    ]);
-
-    //fully liquidate user
-    let blank_requests: Vec<Request> = vec![&fixture.env];
-    pool_fixture
-        .pool
-        .submit(&henk, &henk, &henk, &blank_requests);
+    ]);   
+    
     let liq_pct = 100;
     let auction_data = pool_fixture
         .pool
@@ -77,34 +68,13 @@ fn test_liquidations() {
     //allow 250 blocks to pass
     fixture.jump_with_sequence(251 * 5);
 
-    let fill_requests = vec![
-        &fixture.env,
-        Request {
-            request_type: RequestType::FillUserLiquidationAuction as u32,
-            address: henk.clone(),
-            amount: 100,
-        },
-        Request {
-            request_type: RequestType::Repay as u32,
-            address: fixture.tokens[TokenIndex::OUSD].address.clone(),
-            amount: ousd_bid_amount,
-        },
-        Request {
-            request_type: RequestType::WithdrawCollateral as u32,
-            address: fixture.tokens[TokenIndex::XLM].address.clone(),
-            amount: xlm_lot_amount,
-        },
-    ];
-
     let piet = Address::generate(&fixture.env);
-    fixture.tokens[TokenIndex::OUSD].mint(&piet, &(10_000 * SCALAR_7));
-
-    pool_fixture
-        .pool
-        .submit(&piet, &piet, &piet, &fill_requests);
+    fixture.tokens[TokenIndex::OUSD].mint(&pegkeeper.address.clone(), &(10_000 * SCALAR_7));
+    
+    pegkeeper.liquidate(&henk, &fixture.tokens[TokenIndex::OUSD].address.clone(), &ousd_bid_amount, &fixture.tokens[TokenIndex::XLM].address.clone(), &xlm_lot_amount, &pool_fixture.pool.address.clone(), &(100 as i128));
 
     assert_eq!(
         xlm_lot_amount,
-        fixture.tokens[TokenIndex::XLM].balance(&piet)
+        fixture.tokens[TokenIndex::XLM].balance(&pegkeeper.address.clone())
     );
 }
