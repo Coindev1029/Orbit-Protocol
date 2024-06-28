@@ -77,7 +77,4 @@ fn test_liquidations() {
         xlm_lot_amount,
         fixture.tokens[TokenIndex::XLM].balance(&pegkeeper.address.clone())
     );
-
-    std::println!("balance xlm after: {}", fixture.tokens[TokenIndex::XLM].balance(&piet) / SCALAR_7);
-    std::println!("balance ousd after: {}", fixture.tokens[TokenIndex::OUSD].balance(&piet) / SCALAR_7);
 }
