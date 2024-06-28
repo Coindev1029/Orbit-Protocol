@@ -97,3 +97,69 @@ fn test_liquidations() {
     std::println!("XLM Balance: {}", fixture.tokens[TokenIndex::XLM].balance(&pegkeeper.address.clone()));
     // Check if the liquidation has completed succesfully.
 }
+
+#[test]
+fn test_liquidations_real() {
+    let mut fixture = create_fixture_with_data(false);
+
+    let initial_xlm_amount = 10_000_000_000_00 * SCALAR_7; // Assuming 1 XLM
+    let initial_ousd_amount = (initial_xlm_amount as f64 * 0.18) as i128;
+    fixture.create_pair(TokenIndex::OUSD, TokenIndex::XLM, initial_ousd_amount, initial_xlm_amount);
+
+    let pool_fixture = &fixture.pools[0];
+    let henk = Address::generate(&fixture.env);
+
+    fixture.tokens[TokenIndex::XLM].mint(&henk, &(120_000 * SCALAR_7));
+
+    let requests: Vec<Request> = vec![
+        &fixture.env,
+        Request {
+            request_type: RequestType::SupplyCollateral as u32,
+            address: fixture.tokens[TokenIndex::XLM].address.clone(),
+            amount: 100_000 * SCALAR_7,
+        },
+        Request {
+            request_type: RequestType::Borrow as u32,
+            address: fixture.tokens[TokenIndex::OUSD].address.clone(),
+            amount: 8_800 * SCALAR_7,
+        },
+    ];
+    pool_fixture.pool.submit(&henk, &henk, &henk, &requests);
+
+    assert_eq!(
+        20_000 * SCALAR_7,
+        fixture.tokens[TokenIndex::XLM].balance(&henk)
+    );
+    assert_eq!(
+        8_800 * SCALAR_7,
+        fixture.tokens[TokenIndex::OUSD].balance(&henk)
+    );
+
+    fixture.jump(60 * 60 * 24 * 7 * 4); // 4 weeks
+    fixture.oracle.set_price_stable(&vec![
+        &fixture.env,
+        1_0000000,    // usdc
+        0_0800000,    // xlm
+    ]);
+
+    // Create the token pair with initial supply.
+
+    let treasury = &fixture.treasury;
+    let piet = Address::generate(&fixture.env);
+
+    let liq_pct = 100;
+    let auction_data = pool_fixture
+        .pool
+        .new_liquidation_auction(&henk, &liq_pct);
+
+    let ousd_bid_amount = auction_data.bid.get_unchecked(fixture.tokens[TokenIndex::OUSD].address.clone());
+    let xlm_lot_amount = auction_data.lot.get_unchecked(fixture.tokens[TokenIndex::XLM].address.clone());
+
+    //allow 250 blocks to pass
+    fixture.jump_with_sequence(251 * 5);
+
+    treasury.keep_peg(&piet, &fixture.tokens[TokenIndex::OUSD].address.clone(), &fixture.tokens[TokenIndex::XLM].address.clone(), &henk, &fixture.pairs[0].address.clone(), &ousd_bid_amount, &xlm_lot_amount, &(100 as i128));
+
+    std::println!("OUSD Balance: {}", fixture.tokens[TokenIndex::OUSD].balance(&piet) / SCALAR_7);
+    // Check if the liquidation has completed succesfully.
+}

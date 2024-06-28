@@ -44,7 +44,7 @@ pub trait Treasury {
     /// * `token` - The Address of the token
     /// * `liquidation` - The Address of the liquidation contract
     /// * `amount` - The amount of the flashloan
-    fn keep_peg(e: Env, caller: Address, token: Address, liquidation: Address, amount: i128);
+    fn keep_peg(e: Env, caller: Address, token: Address, collateral: Address, liquidation: Address, pair: Address, amount: i128, amount_out: i128, percent: i128);
 
     /// (Admin only) Increase the supply of the pool
     ///
@@ -132,7 +132,7 @@ impl Treasury for TreasuryContract {
         ]);
     }
 
-    fn keep_peg(e: Env, caller: Address, token: Address, liquidation: Address, amount: i128) {
+    fn keep_peg(e: Env, caller: Address, token: Address, collateral: Address, liquidation: Address, pair: Address, amount: i128, amount_out: i128, percent: i128) {
         storage::extend_instance(&e);
         
         log!(&e, "================================= Real: Treasury FlashLoan Function Start ============================");
@@ -150,13 +150,15 @@ impl Treasury for TreasuryContract {
             &e,
             caller.into_val(&e),
             token.into_val(&e),
+            collateral.into_val(&e),
+            pair.into_val(&e),
             blend_pool.into_val(&e),
             liquidation.into_val(&e),
             amount.into_val(&e),
+            amount_out.into_val(&e),
+            percent.into_val(&e),
         ];
         e.invoke_contract::<Val>(&pegkeeper, &Symbol::new(&e, "exe_op"), exe_op_args);
-        // Transfer tokens back to the treasury
-        token_client.transfer_from(&e.current_contract_address(), &pegkeeper, &e.current_contract_address(), &amount);
 
         // Check if the flashloan was fully repaid
         let token_balance_after = token_client.balance(&e.current_contract_address());
