@@ -55,7 +55,7 @@ fn test_liquidations() {
     fixture.oracle.set_price_stable(&vec![
         &fixture.env,
         1_0000000,    // usdc
-        0_0800000,    // xlm
+        0_0880000,    // xlm
     ]);
 
     //fully liquidate user
@@ -97,8 +97,10 @@ fn test_liquidations() {
     ];
 
     let piet = Address::generate(&fixture.env);
-    fixture.tokens[TokenIndex::OUSD].mint(&piet, &(10_000 * SCALAR_7));
+    fixture.tokens[TokenIndex::OUSD].mint(&piet, &(8_800 * SCALAR_7));
 
+    std::println!("balance xlm before: {}", fixture.tokens[TokenIndex::XLM].balance(&piet) / SCALAR_7);
+    std::println!("balance ousd before: {}", fixture.tokens[TokenIndex::OUSD].balance(&piet) / SCALAR_7);
     pool_fixture
         .pool
         .submit(&piet, &piet, &piet, &fill_requests);
@@ -107,4 +109,7 @@ fn test_liquidations() {
         xlm_lot_amount,
         fixture.tokens[TokenIndex::XLM].balance(&piet)
     );
+
+    std::println!("balance xlm after: {}", fixture.tokens[TokenIndex::XLM].balance(&piet) / SCALAR_7);
+    std::println!("balance ousd after: {}", fixture.tokens[TokenIndex::OUSD].balance(&piet) / SCALAR_7);
 }
