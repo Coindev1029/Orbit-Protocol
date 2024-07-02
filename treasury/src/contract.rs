@@ -8,8 +8,6 @@ use token::Client as TokenClient;
 use sep_41_token::StellarAssetClient;
 use token::StellarAssetClient as TokenAdminClient;
 
-const FLASH_LOAN: Symbol = symbol_short!("FLASHLOAN");
-
 #[contract]
 pub struct TreasuryContract;
 

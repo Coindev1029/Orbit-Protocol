@@ -1,4 +1,4 @@
-use soroban_sdk::{Address, contracttype, Env, Symbol};
+use soroban_sdk::{Address, contracttype, Env};
 use soroban_sdk::unwrap::UnwrapOptimized;
 
 pub(crate) const LEDGER_THRESHOLD_SHARED: u32 = 172800; // ~ 10 days
