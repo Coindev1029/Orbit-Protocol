@@ -143,7 +143,7 @@ impl MockTreasury for MockTreasuryContract {
         StellarAssetClient::new(&e, &token).mint(&pegkeeper, &amount);
 
         // Execute operation
-        let exe_op_args = vec![
+        let fl_receive_args = vec![
             &e,
             caller.into_val(&e),
             token.into_val(&e),
@@ -151,7 +151,7 @@ impl MockTreasury for MockTreasuryContract {
             liquidation.into_val(&e),
             amount.into_val(&e),
         ];
-        e.invoke_contract::<Val>(&pegkeeper, &Symbol::new(&e, "exe_op"), exe_op_args);
+        e.invoke_contract::<Val>(&pegkeeper, &Symbol::new(&e, "fl_receive"), fl_receive_args);
         log!(&e, "================================= Mock: Treasury FlashLoan Function End ============================");
     }
 }

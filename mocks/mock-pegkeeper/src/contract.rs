@@ -22,7 +22,7 @@ pub trait MockPegkeeper {
     /// * `token` - The Address for the token
     /// * `amount` - The Amount for the flashloan
     /// * `fee` - The Fee for the flashloan
-    fn exe_op(e: Env, caller: Address, token: Address, blend_pool: Address, liquidation: Address, amount: i128);
+    fn fl_receive(e: Env, caller: Address, token: Address, blend_pool: Address, liquidation: Address, amount: i128);
 
     /// Execute operation
     ///
@@ -48,13 +48,13 @@ impl MockPegkeeper for MockPegkeeperContract {
         storage::set_router(&e, &router);
         storage::set_admin(&e, &admin);
     }
-    fn exe_op(e: Env, caller: Address, token: Address, blend_pool: Address, liquidation: Address, amount: i128) {
+    fn fl_receive(e: Env, caller: Address, token: Address, blend_pool: Address, liquidation: Address, amount: i128) {
         storage::extend_instance(&e);
 
         let admin = storage::get_admin(&e);
         admin.require_auth();
 
-        log!(&e, "================================= MockPegkeeper  exe_op function End ================================");
+        log!(&e, "================================= MockPegkeeper  fl_receive function End ================================");
     }
 
     fn liquidate(e: Env, auction_creator: Address, ousd: Address, ousd_bid_amount: i128, xlm: Address, xlm_lot_amount: i128, blend_pool: Address, amount: i128) {

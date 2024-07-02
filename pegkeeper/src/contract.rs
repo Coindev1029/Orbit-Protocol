@@ -24,7 +24,7 @@ pub trait Pegkeeper {
     /// * `token` - The Address for the token
     /// * `amount` - The Amount for the flashloan
     /// * `fee` - The Fee for the flashloan
-    fn exe_op(e: Env, caller: Address, token: Address, collateral: Address, pair: Address, blend_pool: Address, liquidation: Address, amount_in: i128, amount_out: i128, percent: i128);
+    fn fl_receive(e: Env, caller: Address, token: Address, collateral: Address, pair: Address, blend_pool: Address, liquidation: Address, amount_in: i128, amount_out: i128, percent: i128);
 }
 
 #[contractimpl]
@@ -39,7 +39,7 @@ impl Pegkeeper for PegkeeperContract {
         storage::set_router(&e, &router);
         storage::set_admin(&e, &admin);
     }
-    fn exe_op(e: Env, caller: Address, token: Address, collateral: Address, pair: Address, blend_pool: Address, liquidation: Address, amount_in: i128, amount_out: i128, percent: i128) {
+    fn fl_receive(e: Env, caller: Address, token: Address, collateral: Address, pair: Address, blend_pool: Address, liquidation: Address, amount_in: i128, amount_out: i128, percent: i128) {
         storage::extend_instance(&e);
         let admin = storage::get_admin(&e);
         admin.require_auth();
