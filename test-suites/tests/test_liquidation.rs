@@ -22,6 +22,7 @@ fn test_liquidations() {
 
     let pool_fixture = &fixture.pools[0];
     let henk = Address::generate(&fixture.env);
+    let treasury = &fixture.mock_treasury;
 
     fixture.tokens[TokenIndex::XLM].mint(&henk, &(120_000 * SCALAR_7));
 
@@ -71,37 +72,9 @@ fn test_liquidations() {
     //allow 250 blocks to pass
     fixture.jump_with_sequence(251 * 5);
 
-    // fixture.mock_treasury.keep_peg(&henk, &fixture.tokens[TokenIndex::OUSD].address.clone(), &henk, &ousd_bid_amount);
-    fixture.tokens[TokenIndex::OUSD].mint(&pegkeeper.address.clone(), &ousd_bid_amount);
-
-    // assert_eq!(
-    //     ousd_bid_amount,
-    //     fixture.tokens[TokenIndex::OUSD].balance(&pegkeeper.address.clone())
-    // );
-
     let pair = &fixture.pairs[0];
 
-    pegkeeper.fl_receive(&pair.address.clone(), &henk, &fixture.tokens[TokenIndex::OUSD].address.clone(), &ousd_bid_amount, &fixture.tokens[TokenIndex::XLM].address.clone(), &xlm_lot_amount, &pool_fixture.pool.address.clone(), &(100 as i128));
-
-    // pegkeeper.liquidate(&henk, &fixture.tokens[TokenIndex::OUSD].address.clone(), &ousd_bid_amount, &fixture.tokens[TokenIndex::XLM].address.clone(), &xlm_lot_amount, &pool_fixture.pool.address.clone(), &(100 as i128));
-
-    // // Check if the liquidation has completed succesfully.
-    // assert_eq!(
-    //     xlm_lot_amount,
-    //     fixture.tokens[TokenIndex::XLM].balance(&pegkeeper.address.clone())
-    // );
-
-    // let current_pegkeeper_balance = fixture.tokens[TokenIndex::OUSD].balance(&pegkeeper.address.clone());
-    // let to_get_back = ousd_bid_amount - current_pegkeeper_balance;
-
-    
-
-    // std::println!("OUSD Balance: {}", fixture.tokens[TokenIndex::OUSD].balance(&pegkeeper.address.clone()) / SCALAR_7);
-    // std::println!("XLM Balance: {}", fixture.tokens[TokenIndex::XLM].balance(&pegkeeper.address.clone()));
-
-    // pegkeeper.swap(&pair.address.clone(), &fixture.tokens[TokenIndex::XLM].address.clone(), &fixture.tokens[TokenIndex::OUSD].address.clone(), &xlm_lot_amount, &0);
-
-    // assert!(fixture.tokens[TokenIndex::OUSD].balance(&pegkeeper.address.clone()) > ousd_bid_amount);
+    treasury.keep_peg(&pair.address.clone(), &henk, &fixture.tokens[TokenIndex::OUSD].address.clone(), &ousd_bid_amount, &fixture.tokens[TokenIndex::XLM].address.clone(), &xlm_lot_amount,  &(100 as i128));
 
     std::println!("OUSD Balance: {}", fixture.tokens[TokenIndex::OUSD].balance(&pegkeeper.address.clone()) / SCALAR_7);
     std::println!("XLM Balance: {}", fixture.tokens[TokenIndex::XLM].balance(&pegkeeper.address.clone()));
