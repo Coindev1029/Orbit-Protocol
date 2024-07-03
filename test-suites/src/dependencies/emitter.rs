@@ -1,7 +1,7 @@
 use soroban_sdk::{testutils::Address as _, Address, Env};
 
 mod emitter_contract {
-    soroban_sdk::contractimport!(file = "../wasm/emitter.wasm");
+    soroban_sdk::contractimport!(file = "../wasm/blend/emitter.wasm");
 }
 pub use emitter_contract::{Client as EmitterClient, WASM as EmitterWASM};
 

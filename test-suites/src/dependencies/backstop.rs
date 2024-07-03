@@ -1,7 +1,7 @@
 use soroban_sdk::{testutils::Address as _, Address, Env};
 
 mod backstop_contract_wasm {
-    soroban_sdk::contractimport!(file = "../wasm/backstop.wasm");
+    soroban_sdk::contractimport!(file = "../wasm/blend/backstop.wasm");
 }
 pub use backstop_contract_wasm::{Client as BackstopClient, WASM as BackstopWASM};
 

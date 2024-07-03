@@ -2,7 +2,7 @@ use soroban_sdk::{testutils::Address as _, vec, Address, Env};
 use sep_41_token::testutils::MockTokenClient;
 
 mod lp_contract {
-    soroban_sdk::contractimport!(file = "../wasm/comet.wasm");
+    soroban_sdk::contractimport!(file = "../wasm/blend/comet.wasm");
 }
 pub use lp_contract::{Client as LPClient, WASM as LP_WASM};
 

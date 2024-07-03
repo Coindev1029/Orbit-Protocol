@@ -9,10 +9,31 @@ const LEDGER_BUMP_INSTANCE: u32 = LEDGER_THRESHOLD_INSTANCE + ONE_DAY_LEDGERS; /
 #[contracttype]
 pub enum DataKey {
     ADMIN,
-    TREASURY(Address), // mapping token address to treasury addres
-    BALANCE,
-    MAXIMUMDURATION,
+    ROUTER,
 }
+
+// #[derive(Clone)]
+// #[contracttype]
+// pub struct LiquidateConfig {
+//     pub auction_creator: Address, // auction creator to liquidate
+//     pub tokena: Address,   // tokena token address
+//     pub tokena_bid_amount: i128, // tokana bid amount
+//     pub tokenb: Address,   // tokenb address
+//     pub tokenb_lot_amount: i128, // tokenb lot amount
+//     pub blend_pool: Address, // blend pool address
+//     pub auction_amount: i128 // auction amount
+// }
+
+// #[derive(Clone)]
+// #[contracttype]
+// pub struct SwapConfig {
+//     pub pair: Address, // auction creator to liquidate
+//     pub tokena: Address,   // tokena token address
+//     pub tokena_amount: i128, // tokana amount
+//     pub tokenb: Address,   // tokenb address
+//     pub tokenb_amount: i128, // tokenb amount
+// }
+
 /// Bump the instance rent for the contract
 pub fn extend_instance(e: &Env) {
     e.storage()
@@ -27,7 +48,7 @@ pub fn is_init(e: &Env) -> bool { e.storage().instance().has(&DataKey::ADMIN) }
 ///
 /// ### Panics
 /// If the admin does not exist
-pub fn _get_admin(e: &Env) -> Address {
+pub fn get_admin(e: &Env) -> Address {
     e.storage()
         .instance()
         .get(&DataKey::ADMIN)
@@ -42,4 +63,25 @@ pub fn set_admin(e: &Env, new_admin: &Address) {
     e.storage()
         .instance()
         .set(&DataKey::ADMIN, new_admin);
+}
+
+/// Fetch the current router Address
+///
+/// ### Panics
+/// If the router does not exist
+pub fn get_router(e: &Env) -> Address {
+    e.storage()
+        .instance()
+        .get(&DataKey::ROUTER)
+        .unwrap_optimized()
+}
+
+/// Set a new router
+///
+/// ### Arguments
+/// * `new_router` - The Address for the router
+pub fn set_router(e: &Env, new_router: &Address) {
+    e.storage()
+        .instance()
+        .set(&DataKey::ROUTER, new_router);
 }
