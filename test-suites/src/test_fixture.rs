@@ -230,7 +230,6 @@ impl TestFixture<'_> {
             &backstop_take_rate,
             &max_positions,
         );
-
         self.pools.push(PoolFixture {
             pool: PoolClient::new(&self.env, &pool_id),
             reserves: HashMap::new(),

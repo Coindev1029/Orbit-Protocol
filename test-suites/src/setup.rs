@@ -102,9 +102,7 @@ pub fn create_fixture_with_data<'a>(mock: bool) -> TestFixture<'a> {
     fixture
         .backstop
         .deposit(&frodo, &pool_fixture.pool.address, &(50_000 * SCALAR_7));
-
     fixture.backstop.update_tkn_val();
-
     fixture
         .backstop
         .add_reward(&pool_fixture.pool.address, &Address::generate(&fixture.env));
@@ -123,6 +121,23 @@ pub fn create_fixture_with_data<'a>(mock: bool) -> TestFixture<'a> {
     } else {
         fixture.treasury.increase_supply(&token, &(1_000_000 * SCALAR_7));
     }
+
+    // supply and borrow OUSD for 80% utilization (close to target)
+    // let requests: SVec<Request> = svec![
+    //     &fixture.env,
+    //     Request {
+    //         request_type: RequestType::SupplyCollateral as u32,
+    //         address: fixture.tokens[TokenIndex::OUSD].address.clone(),
+    //         amount: 10_000 * 10i128.pow(6),
+    //     },
+    //     Request {
+    //         request_type: RequestType::Borrow as u32,
+    //         address: fixture.tokens[TokenIndex::OUSD].address.clone(),
+    //         amount: 8_000 * 10i128.pow(6),
+    //     },
+    // ];
+   
+    // pool_fixture.pool.submit(&frodo, &frodo, &frodo, &requests);
 
     std::println!("===================================== Fixture Create With Data Successfully ===========================================");
 
