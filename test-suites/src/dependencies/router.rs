@@ -1,7 +1,7 @@
 use soroban_sdk::{testutils::Address as _, Address, Env};
 
 mod router_contract {
-    soroban_sdk::contractimport!(file = "../wasm/router.wasm");
+    soroban_sdk::contractimport!(file = "../wasm/soroswap/router.wasm");
 }
 pub use router_contract::{Client as RouterClient, WASM as ROUTER_WASM};
 

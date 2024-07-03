@@ -13,6 +13,9 @@
       <sourceFolder url="file://$MODULE_DIR$/treasury-factory/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/mocks/mock-treasury-factory/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/bridge-oracle/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/mocks/mock-pegkeeper/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/mocks/mock-treasury/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/pegkeeper/src" isTestSource="false" />
       <excludeFolder url="file://$MODULE_DIR$/controller/target" />
       <excludeFolder url="file://$MODULE_DIR$/token/target" />
       <excludeFolder url="file://$MODULE_DIR$/controller-factory/target" />
