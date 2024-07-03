@@ -7,21 +7,27 @@ use test_suites::{
     create_fixture_with_data,
     test_fixture::{TokenIndex, SCALAR_7},
 };
+use test_suites::test_fixture::PoolFixture;
+
 #[test]
 fn test_mock_pegkeeper_flashloan() {
 
-    let fixture = create_fixture_with_data();
-    // let frodo: &Address = fixture.users.get(0).unwrap();
-    // let pool_fixture: &PoolFixture = fixture.pools.get(0).unwrap();
+    let fixture = create_fixture_with_data(true);
+    let ousd_client = &fixture.tokens[TokenIndex::OUSD];
+    let caller = Address::generate(&fixture.env);
+    let liquidation = Address::generate(&fixture.env);
+    let treasury = &fixture.mock_treasury;
+    let pegkeeper = fixture.mock_pegkeeper.address.clone();
 
-    let mock_usdt_token = &fixture.tokens[TokenIndex::OUSD];
+    assert_eq!(
+        0,
+        ousd_client.balance(&pegkeeper)
+    );
 
-    let token_balance_before = mock_usdt_token.balance(&fixture.mock_pegkeeper.address);
-    fixture.mock_treasury.fl_loan(&1000i128);
-    let token_balance_before = mock_usdt_token.balance(&fixture.mock_pegkeeper.address);
-    assert_eq!(token_balance_before.clone(), token_balance_before.clone());
-    std::println!("===================== balance{:?} =====================", mock_usdt_token.balance(&fixture.mock_pegkeeper.address));
-    std::println!("=====================================FlashLoan Logs Start===========================================");
-    std::println!("{:?}", fixture.env.logs().all().join("\n"));
-    std::println!("=====================================FlashLoan Logs End===========================================");
+    // treasury.keep_peg(&caller, &ousd_client.address.clone(), &liquidation, &(1000 * SCALAR_7));
+
+    // assert_eq!(
+    //     1000 * SCALAR_7,
+    //     ousd_client.balance(&pegkeeper)
+    // );
 }

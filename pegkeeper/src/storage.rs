@@ -9,9 +9,7 @@ const LEDGER_BUMP_INSTANCE: u32 = LEDGER_THRESHOLD_INSTANCE + ONE_DAY_LEDGERS; /
 #[contracttype]
 pub enum DataKey {
     ADMIN,
-    TREASURY(Address), // mapping token address to treasury addres
-    BALANCE,
-    MAXIMUMDURATION,
+    ROUTER,
 }
 /// Bump the instance rent for the contract
 pub fn extend_instance(e: &Env) {
@@ -27,7 +25,7 @@ pub fn is_init(e: &Env) -> bool { e.storage().instance().has(&DataKey::ADMIN) }
 ///
 /// ### Panics
 /// If the admin does not exist
-pub fn _get_admin(e: &Env) -> Address {
+pub fn get_admin(e: &Env) -> Address {
     e.storage()
         .instance()
         .get(&DataKey::ADMIN)
@@ -42,4 +40,25 @@ pub fn set_admin(e: &Env, new_admin: &Address) {
     e.storage()
         .instance()
         .set(&DataKey::ADMIN, new_admin);
+}
+
+/// Fetch the current router Address
+///
+/// ### Panics
+/// If the router does not exist
+pub fn get_router(e: &Env) -> Address {
+    e.storage()
+        .instance()
+        .get(&DataKey::ROUTER)
+        .unwrap_optimized()
+}
+
+/// Set a new router
+///
+/// ### Arguments
+/// * `new_router` - The Address for the router
+pub fn set_router(e: &Env, new_router: &Address) {
+    e.storage()
+        .instance()
+        .set(&DataKey::ROUTER, new_router);
 }
