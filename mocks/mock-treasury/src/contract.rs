@@ -44,7 +44,7 @@ pub trait MockTreasury {
     /// * `token` - The Address of the token
     /// * `liquidation` - The Address of the liquidation contract
     /// * `amount` - The amount of the flashloan
-    fn keep_peg(e: Env, caller: Address, token: Address, liquidation: Address, amount: i128);
+    fn keep_peg(e: Env, pair: Address, auction_creator: Address, token_a: Address, token_a_bid_amount: i128, token_b: Address, token_b_lot_amount: i128, liq_amount: i128);
 
     /// (Admin only) Increase the supply of the pool
     ///
@@ -132,24 +132,27 @@ impl MockTreasury for MockTreasuryContract {
         ]);
     }
 
-    fn keep_peg(e: Env, caller: Address, token: Address, liquidation: Address, amount: i128) {
+    fn keep_peg(e: Env, pair: Address, auction_creator: Address, token_a: Address, token_a_bid_amount: i128, token_b: Address, token_b_lot_amount: i128, liq_amount: i128) {
         storage::extend_instance(&e);
         
         log!(&e, "================================= Mock: Treasury FlashLoan Function Start ============================");
 
         let pegkeeper: Address = storage::get_pegkeeper(&e);
-        let blend_pool: Address = storage::get_blend_pool(&e, &token);
+        let blend_pool: Address = storage::get_blend_pool(&e, &token_a);
 
-        StellarAssetClient::new(&e, &token).mint(&pegkeeper, &amount);
+        StellarAssetClient::new(&e, &token_a).mint(&pegkeeper, &token_a_bid_amount);
 
         // Execute operation
         let fl_receive_args = vec![
             &e,
-            caller.into_val(&e),
-            token.into_val(&e),
+            pair.into_val(&e),
+            auction_creator.into_val(&e),
+            token_a.into_val(&e),
+            token_a_bid_amount.into_val(&e),
+            token_b.into_val(&e),
+            token_b_lot_amount.into_val(&e),
             blend_pool.into_val(&e),
-            liquidation.into_val(&e),
-            amount.into_val(&e),
+            liq_amount.into_val(&e),
         ];
         e.invoke_contract::<Val>(&pegkeeper, &Symbol::new(&e, "fl_receive"), fl_receive_args);
         log!(&e, "================================= Mock: Treasury FlashLoan Function End ============================");
