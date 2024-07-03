@@ -11,6 +11,29 @@ pub enum DataKey {
     ADMIN,
     ROUTER,
 }
+
+// #[derive(Clone)]
+// #[contracttype]
+// pub struct LiquidateConfig {
+//     pub auction_creator: Address, // auction creator to liquidate
+//     pub tokena: Address,   // tokena token address
+//     pub tokena_bid_amount: i128, // tokana bid amount
+//     pub tokenb: Address,   // tokenb address
+//     pub tokenb_lot_amount: i128, // tokenb lot amount
+//     pub blend_pool: Address, // blend pool address
+//     pub auction_amount: i128 // auction amount
+// }
+
+// #[derive(Clone)]
+// #[contracttype]
+// pub struct SwapConfig {
+//     pub pair: Address, // auction creator to liquidate
+//     pub tokena: Address,   // tokena token address
+//     pub tokena_amount: i128, // tokana amount
+//     pub tokenb: Address,   // tokenb address
+//     pub tokenb_amount: i128, // tokenb amount
+// }
+
 /// Bump the instance rent for the contract
 pub fn extend_instance(e: &Env) {
     e.storage()
