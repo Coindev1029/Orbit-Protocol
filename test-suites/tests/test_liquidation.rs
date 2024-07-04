@@ -2,8 +2,7 @@
 use cast::i128;
 use soroban_fixed_point_math::FixedPoint;
 use soroban_sdk::{
-    testutils::{Address as AddressTestTrait, Events},
-    vec, Address, Error, IntoVal, Symbol, Val, Vec,
+    log, testutils::{Address as AddressTestTrait, Events, Logs}, vec, Address, Error, IntoVal, Symbol, Val, Vec
 };
 use test_suites::{
     dependencies::pool::{Request, RequestType, Positions, PoolDataKey, ReserveConfig, ReserveData},
@@ -78,6 +77,9 @@ fn test_liquidations() {
 
     std::println!("OUSD Balance: {}", fixture.tokens[TokenIndex::OUSD].balance(&pegkeeper.address.clone()) / SCALAR_7);
     std::println!("XLM Balance: {}", fixture.tokens[TokenIndex::XLM].balance(&pegkeeper.address.clone()));
+
+    let logs = fixture.env.logs().all();
+    std::println!("{}", logs.join("\n"));
     // Check if the liquidation has completed succesfully.
 }
 
@@ -86,11 +88,12 @@ fn test_liquidations_real() {
     let mut fixture = create_fixture_with_data(false);
 
     let initial_xlm_amount = 10_000_000_000_00 * SCALAR_7; // Assuming 1 XLM
-    let initial_ousd_amount = (initial_xlm_amount as f64 * 0.18) as i128;
+    let initial_ousd_amount = (initial_xlm_amount as f64 * 0.088) as i128;
     fixture.create_pair(TokenIndex::OUSD, TokenIndex::XLM, initial_ousd_amount, initial_xlm_amount);
 
     let pool_fixture = &fixture.pools[0];
     let henk = Address::generate(&fixture.env);
+    let treasury = &fixture.treasury;
 
     fixture.tokens[TokenIndex::XLM].mint(&henk, &(120_000 * SCALAR_7));
 
@@ -122,13 +125,12 @@ fn test_liquidations_real() {
     fixture.oracle.set_price_stable(&vec![
         &fixture.env,
         1_0000000,    // usdc
-        0_0800000,    // xlm
+        0_0880000,    // xlm
     ]);
 
     // Create the token pair with initial supply.
 
-    let treasury = &fixture.treasury;
-    let piet = Address::generate(&fixture.env);
+    let pegkeeper = &fixture.pegkeeper;
 
     let liq_pct = 100;
     let auction_data = pool_fixture
@@ -141,8 +143,15 @@ fn test_liquidations_real() {
     //allow 250 blocks to pass
     fixture.jump_with_sequence(251 * 5);
 
-    treasury.keep_peg(&piet, &fixture.tokens[TokenIndex::OUSD].address.clone(), &fixture.tokens[TokenIndex::XLM].address.clone(), &henk, &fixture.pairs[0].address.clone(), &ousd_bid_amount, &xlm_lot_amount, &(100 as i128));
+    let pair = &fixture.pairs[0];
 
-    std::println!("OUSD Balance: {}", fixture.tokens[TokenIndex::OUSD].balance(&piet) / SCALAR_7);
+    treasury.keep_peg(&pair.address.clone(), &henk, &fixture.tokens[TokenIndex::OUSD].address.clone(), &ousd_bid_amount, &fixture.tokens[TokenIndex::XLM].address.clone(), &xlm_lot_amount,  &(100 as i128));
+
+    std::println!("OUSD Balance: {}", fixture.tokens[TokenIndex::OUSD].balance(&pegkeeper.address.clone()) / SCALAR_7);
+    std::println!("XLM Balance: {}", fixture.tokens[TokenIndex::XLM].balance(&pegkeeper.address.clone()));
+
+    let logs = fixture.env.logs().all();
+    std::println!("{}", logs.join("\n"));
     // Check if the liquidation has completed succesfully.
 }
+

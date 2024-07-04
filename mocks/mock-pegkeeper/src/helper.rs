@@ -87,7 +87,7 @@ use crate::storage;
 //     log!(e, "================================= MockPegkeeper  Swap End ================================");
 // }
 
-pub fn liquidate(e: &Env, auction_creator: Address, token_a: Address, token_a_bid_amount: i128, token_b: Address, token_b__lot_amount: i128, blend_pool: Address, liq_amount: i128) {
+pub fn liquidate(e: &Env, auction_creator: Address, token_a: Address, token_a_bid_amount: i128, token_b: Address, token_b_lot_amount: i128, blend_pool: Address, liq_amount: i128) {
   log!(e, "================================= MockPegkeeper  liquidation Function ================================");
   storage::extend_instance(e);
 
@@ -106,7 +106,7 @@ pub fn liquidate(e: &Env, auction_creator: Address, token_a: Address, token_a_bi
       Request {
           request_type: 3 as u32, // Withdraw
           address: token_b.clone(),
-          amount: token_b__lot_amount,
+          amount: token_b_lot_amount,
       },
   ];
 
