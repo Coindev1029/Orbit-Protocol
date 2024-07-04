@@ -42,7 +42,7 @@ pub trait Treasury {
     /// * `token` - The Address of the token
     /// * `liquidation` - The Address of the liquidation contract
     /// * `amount` - The amount of the flashloan
-    fn keep_peg(e: Env, caller: Address, token: Address, collateral: Address, liquidation: Address, pair: Address, amount: i128, amount_out: i128, percent: i128);
+    fn keep_peg(e: Env, pair: Address, auction_creator: Address, token_a: Address, token_a_bid_amount: i128, token_b: Address, token_b_lot_amount: i128, liq_amount: i128);
 
     /// (Admin only) Increase the supply of the pool
     ///
@@ -130,37 +130,39 @@ impl Treasury for TreasuryContract {
         ]);
     }
 
-    fn keep_peg(e: Env, caller: Address, token: Address, collateral: Address, liquidation: Address, pair: Address, amount: i128, amount_out: i128, percent: i128) {
+    fn keep_peg(e: Env, pair: Address, auction_creator: Address, token_a: Address, token_a_bid_amount: i128, token_b: Address, token_b_lot_amount: i128, liq_amount: i128) {
         storage::extend_instance(&e);
         
         log!(&e, "================================= Real: Treasury FlashLoan Function Start ============================");
 
         let pegkeeper: Address = storage::get_pegkeeper(&e);
-        let blend_pool: Address = storage::get_blend_pool(&e, &token);
-        let token_client = TokenClient::new(&e, &token);
+        let blend_pool: Address = storage::get_blend_pool(&e, &token_a);
 
+        StellarAssetClient::new(&e, &token_a).mint(&pegkeeper, &token_a_bid_amount);
+
+        let token_client = TokenClient::new(&e, &token_a);
         let token_balance_before = token_client.balance(&e.current_contract_address());
 
-        // Mint tokens to pegkeeper
-        TokenAdminClient::new(&e, &token).mint(&pegkeeper, &amount);
         // Execute operation
         let fl_receive_args = vec![
             &e,
-            caller.into_val(&e),
-            token.into_val(&e),
-            collateral.into_val(&e),
             pair.into_val(&e),
+            auction_creator.into_val(&e),
+            token_a.into_val(&e),
+            token_a_bid_amount.into_val(&e),
+            token_b.into_val(&e),
+            token_b_lot_amount.into_val(&e),
             blend_pool.into_val(&e),
-            liquidation.into_val(&e),
-            amount.into_val(&e),
-            amount_out.into_val(&e),
-            percent.into_val(&e),
+            liq_amount.into_val(&e),
         ];
         e.invoke_contract::<Val>(&pegkeeper, &Symbol::new(&e, "fl_receive"), fl_receive_args);
 
+        let _ = token_client.try_transfer_from(&e.current_contract_address(), &pegkeeper, &e.current_contract_address(), &token_a_bid_amount);
         // Check if the flashloan was fully repaid
+
         let token_balance_after = token_client.balance(&e.current_contract_address());
-        if token_balance_after.clone() < token_balance_before.clone() + amount.clone() {
+        log!(&e, "================================= Real: After FlashLoan Function {} {} ============================", token_balance_before, token_balance_after);
+        if token_balance_after.clone() < token_balance_before.clone() + token_a_bid_amount.clone() {
             panic_with_error!(&e, TreasuryError::FlashloanNotRepaid);
         }
 
